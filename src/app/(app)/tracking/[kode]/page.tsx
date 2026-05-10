@@ -198,8 +198,6 @@ export default async function TrackingDetailPage({
                   <span className={`chip ${SURAT_MASUK_STATUS_COLOR[d.status as keyof typeof SURAT_MASUK_STATUS_COLOR]}`}>
                     {SURAT_MASUK_STATUS_LABEL[d.status as keyof typeof SURAT_MASUK_STATUS_LABEL]}
                   </span>
-
-                  </span>
                 </>
               )}
               {!isMasuk && (
