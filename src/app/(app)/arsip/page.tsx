@@ -78,7 +78,7 @@ export default async function ArsipPage({
           take: 200,
           include: {
             unitTujuan: { select: { nama: true } },
-            attachments: { select: { id: true, nama: true, path: true } },
+            attachments: { select: { id: true, nama: true, url: true } },
             _count: { select: { attachments: true } },
           },
         })
@@ -88,7 +88,7 @@ export default async function ArsipPage({
           take: 200,
           include: {
             unitPembuat: { select: { nama: true } },
-            attachments: { select: { id: true, nama: true, path: true } },
+            attachments: { select: { id: true, nama: true, url: true } },
             _count: { select: { attachments: true } },
           },
         });
