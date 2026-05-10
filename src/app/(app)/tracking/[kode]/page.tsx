@@ -194,9 +194,11 @@ export default async function TrackingDetailPage({
             <div className="mt-5 flex flex-wrap gap-2">
               {isMasuk && (
                 <>
-                  <span className={`chip ${PRIORITAS_COLOR[d.prioritas]}`}>{d.prioritas}</span>
-                  <span className={`chip ${SURAT_MASUK_STATUS_COLOR[d.status]}`}>
-                    {SURAT_MASUK_STATUS_LABEL[d.status]}
+                  <span className={`chip ${PRIORITAS_COLOR[d.prioritas as keyof typeof PRIORITAS_COLOR]}`}>{d.prioritas}</span>
+                  <span className={`chip ${SURAT_MASUK_STATUS_COLOR[d.status as keyof typeof SURAT_MASUK_STATUS_COLOR]}`}>
+                    {SURAT_MASUK_STATUS_LABEL[d.status as keyof typeof SURAT_MASUK_STATUS_LABEL]}
+                  </span>
+
                   </span>
                 </>
               )}
