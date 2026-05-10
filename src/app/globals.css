@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-ink-50 text-ink-800 antialiased;
+  font-feature-settings: "cv11", "ss01", "ss03";
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Reusable classes */
+.card {
+  @apply bg-white rounded-xl ring-1 ring-ink-200/70 shadow-card;
+}
+.card-hover {
+  @apply transition hover:shadow-premium hover:ring-ink-200;
+}
+
+.input,
+.select,
+.textarea {
+  @apply w-full rounded-lg border-0 ring-1 ring-ink-200 bg-white px-3.5 py-2.5 text-sm text-ink-800 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition;
+}
+.textarea {
+  @apply py-2.5;
+}
+.label {
+  @apply block text-sm font-medium text-ink-700 mb-1.5;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition ring-1 ring-transparent focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 disabled:opacity-60 disabled:pointer-events-none;
+}
+.btn-primary {
+  @apply btn bg-brand-700 text-white hover:bg-brand-800 shadow-sm;
+}
+.btn-secondary {
+  @apply btn bg-white text-ink-700 ring-ink-200 hover:bg-ink-50;
+}
+.btn-ghost {
+  @apply btn text-ink-600 hover:bg-ink-100;
+}
+.btn-danger {
+  @apply btn bg-red-600 text-white hover:bg-red-700;
+}
+.btn-success {
+  @apply btn bg-emerald-600 text-white hover:bg-emerald-700;
+}
+
+.chip {
+  @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1;
+}
+
+/* Print-only */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  .print-page {
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}
