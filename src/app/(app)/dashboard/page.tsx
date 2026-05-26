@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { Table, THead, TH, TR, TD } from "@/components/ui/Table";
-import DashboardCharts from "./charts-client";
+import { Tren, DisposisiStatus, ByUnit } from "./charts-client";
 import {
   IconInbox,
   IconOutbox,
@@ -267,21 +269,21 @@ export default async function DashboardPage() {
             </h3>
             <p className="text-xs text-ink-500">per bulan</p>
           </div>
-          <DashboardCharts.Tren data={data.chart.trenBulanan} />
+          <Tren data={data.chart.trenBulanan} />
         </div>
 
         <div className="card p-5">
           <h3 className="text-sm font-semibold text-ink-800 mb-4">
             Status Disposisi
           </h3>
-          <DashboardCharts.DisposisiStatus data={data.chart.disposisiByStatus} />
+          <DisposisiStatus data={data.chart.disposisiByStatus} />
         </div>
 
         <div className="lg:col-span-3 card p-5">
           <h3 className="text-sm font-semibold text-ink-800 mb-4">
             Distribusi Surat Masuk per Unit / Bidang (Top 8)
           </h3>
-          <DashboardCharts.ByUnit data={data.chart.suratByUnit} />
+          <ByUnit data={data.chart.suratByUnit} />
         </div>
       </div>
 

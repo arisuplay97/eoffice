@@ -36,7 +36,7 @@ const STATUS_LABEL: Record<string, string> = {
   DITOLAK: "Ditolak",
 };
 
-function Tren({ data }: { data: { bulan: string; masuk: number; keluar: number }[] }) {
+export function Tren({ data }: { data: { bulan: string; masuk: number; keluar: number }[] }) {
   return (
     <div style={{ width: "100%", height: 280 }}>
       <ResponsiveContainer>
@@ -85,7 +85,7 @@ function Tren({ data }: { data: { bulan: string; masuk: number; keluar: number }
   );
 }
 
-function DisposisiStatus({ data }: { data: { status: string; total: number }[] }) {
+export function DisposisiStatus({ data }: { data: { status: string; total: number }[] }) {
   const display = data.map((d) => ({
     name: STATUS_LABEL[d.status] || d.status,
     value: d.total,
@@ -117,7 +117,7 @@ function DisposisiStatus({ data }: { data: { status: string; total: number }[] }
   );
 }
 
-function ByUnit({ data }: { data: { unit: string; total: number }[] }) {
+export function ByUnit({ data }: { data: { unit: string; total: number }[] }) {
   if (data.length === 0) {
     return <p className="text-sm text-ink-500 py-10 text-center">Belum ada data distribusi unit.</p>;
   }
@@ -142,6 +142,3 @@ function ByUnit({ data }: { data: { unit: string; total: number }[] }) {
     </div>
   );
 }
-
-const DashboardCharts = { Tren, DisposisiStatus, ByUnit };
-export default DashboardCharts;
