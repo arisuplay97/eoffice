@@ -126,14 +126,71 @@ async function loadStats() {
 }
 
 export default async function DashboardPage() {
-  const session = (await getSession())!;
-  const data = await loadStats();
+  let session: Awaited<ReturnType<typeof getSession>> = null;
+  let data: Awaited<ReturnType<typeof loadStats>> | null = null;
+  let loadError: string | null = null;
+
+  try {
+    session = await getSession();
+    data = await loadStats();
+  } catch (err: any) {
+    console.error("[Dashboard] loadStats failed:", err);
+    // Provide helpful diagnostics
+    if (err?.message?.includes("JWT_SECRET")) {
+      loadError = "Environment variable JWT_SECRET belum dikonfigurasi. Pastikan JWT_SECRET sudah diatur di Vercel Environment Variables.";
+    } else if (
+      err?.message?.includes("connect") ||
+      err?.message?.includes("ECONNREFUSED") ||
+      err?.message?.includes("Can't reach database") ||
+      err?.message?.includes("Connection")
+    ) {
+      loadError = "Tidak dapat terhubung ke database. Pastikan DATABASE_URL sudah dikonfigurasi dengan benar di Vercel Environment Variables.";
+    } else if (
+      err?.message?.includes("does not exist") ||
+      err?.message?.includes("relation") ||
+      err?.message?.includes("table")
+    ) {
+      loadError = "Tabel database belum dibuat. Jalankan 'npx prisma migrate deploy' atau 'npx prisma db push' untuk membuat tabel.";
+    } else {
+      loadError = err?.message || "Terjadi kesalahan saat memuat data dashboard.";
+    }
+  }
+
+  if (loadError || !data) {
+    return (
+      <>
+        <PageHeader
+          title={session ? `Selamat datang, ${session.nama.split(" ")[0]}.` : "Dashboard"}
+          subtitle="Ringkasan persuratan, disposisi, dan tindak lanjut hari ini."
+        />
+        <div className="card p-8 text-center">
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+            <IconWarning className="h-7 w-7" />
+          </div>
+          <h2 className="text-lg font-semibold text-ink-900 mb-2">Gagal Memuat Dashboard</h2>
+          <p className="text-sm text-ink-500 max-w-lg mx-auto mb-4">
+            {loadError || "Terjadi kesalahan saat memuat data."}
+          </p>
+          <div className="text-xs text-ink-400 bg-ink-50 rounded-lg p-3 max-w-md mx-auto">
+            <p className="font-semibold mb-1">Checklist konfigurasi:</p>
+            <ul className="text-left space-y-1 list-disc list-inside">
+              <li>DATABASE_URL sudah diatur &amp; database dapat diakses</li>
+              <li>JWT_SECRET sudah diatur (min. 32 karakter)</li>
+              <li>Migrasi database sudah dijalankan</li>
+              <li>Seed data awal sudah dijalankan</li>
+            </ul>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   const s = data.stat;
 
   return (
     <>
       <PageHeader
-        title={`Selamat datang, ${session.nama.split(" ")[0]}.`}
+        title={session ? `Selamat datang, ${session.nama.split(" ")[0]}.` : "Dashboard"}
         subtitle="Ringkasan persuratan, disposisi, dan tindak lanjut hari ini."
       />
 
