@@ -6,7 +6,8 @@ import Link from "next/link";
 import type { SessionUser } from "@/lib/auth";
 import { ROLE_LABEL } from "@/lib/constants";
 import { cn, formatRelative } from "@/lib/utils";
-import { IconBell, IconLogout, IconSearch } from "@/components/ui/Icons";
+import { IconBell, IconLogout, IconSearch, IconMenu } from "@/components/ui/Icons";
+import { MENU } from "./Sidebar";
 import { useToast } from "@/components/ui/Toast";
 
 type Notif = {
@@ -25,9 +26,11 @@ export function Header({ user, title }: { user: SessionUser; title: string }) {
   const [unread, setUnread] = useState(0);
   const [openNotif, setOpenNotif] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
+  const [openMobileNav, setOpenMobileNav] = useState(false);
   const [q, setQ] = useState("");
   const notifRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
 
   const load = async () => {
     try {
@@ -52,6 +55,8 @@ export function Header({ user, title }: { user: SessionUser; title: string }) {
         setOpenNotif(false);
       if (menuRef.current && !menuRef.current.contains(e.target as Node))
         setOpenMenu(false);
+      if (mobileNavRef.current && !mobileNavRef.current.contains(e.target as Node))
+        setOpenMobileNav(false);
     };
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -90,7 +95,48 @@ export function Header({ user, title }: { user: SessionUser; title: string }) {
 
   return (
     <header className="h-16 bg-white border-b border-ink-200 flex items-center px-4 sm:px-6 gap-3 sticky top-0 z-30">
-      <div className="lg:hidden">
+      <div className="lg:hidden flex items-center gap-3">
+        <div ref={mobileNavRef} className="relative">
+          <button
+            onClick={() => setOpenMobileNav((v) => !v)}
+            className="p-1.5 -ml-1.5 rounded-lg text-ink-600 hover:bg-ink-100"
+            aria-label="Menu"
+          >
+            <IconMenu className="h-5 w-5" />
+          </button>
+          {openMobileNav && (
+            <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-premium ring-1 ring-ink-200 overflow-hidden animate-fadeIn py-2 max-h-[80vh] overflow-y-auto">
+              <div className="px-4 py-2 border-b border-ink-100 mb-2">
+                <p className="font-semibold text-brand-800 text-sm">TIARA E-Office</p>
+              </div>
+              {MENU.map((section) => {
+                const visibleItems = section.items.filter((i) => !i.roles || i.roles.includes(user.role));
+                if (visibleItems.length === 0) return null;
+                return (
+                  <div key={section.section} className="mb-2">
+                    <p className="px-4 text-[10px] font-semibold uppercase tracking-wider text-ink-500 mb-1">
+                      {section.section}
+                    </p>
+                    {visibleItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setOpenMobileNav(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-700 hover:bg-ink-50 hover:text-brand-700 transition"
+                        >
+                          <Icon className="h-4 w-4 text-ink-400" />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
         <Link
           href="/dashboard"
           className="font-semibold text-brand-800"

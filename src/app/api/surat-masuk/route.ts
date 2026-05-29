@@ -145,6 +145,17 @@ export async function POST(req: NextRequest) {
       if (!u || !u.aktif) return fail("Unit tujuan tidak valid");
     }
 
+    // 1. Upload files first and fail fast if any invalid
+    const uploadedAttachments = [];
+    for (const f of files) {
+      try {
+        const saved = await saveUpload(f);
+        uploadedAttachments.push(saved);
+      } catch (e: any) {
+        return fail(`Gagal mengunggah berkas "${f.name}": ${e?.message || "error"}`);
+      }
+    }
+
     const nomorAgenda = await generateNomorAgenda();
     const kodeVerifikasi = generateVerifikasiKode();
     const signatureHash = generateSignatureHash(`${nomorAgenda}|${kodeVerifikasi}`);
@@ -164,14 +175,8 @@ export async function POST(req: NextRequest) {
         kodeVerifikasi,
         signatureHash,
         createdById: session.id,
-      },
-    });
-
-    for (const f of files) {
-      try {
-        const saved = await saveUpload(f);
-        await prisma.attachment.create({
-          data: {
+        attachments: {
+          create: uploadedAttachments.map((saved) => ({
             nama: saved.nama,
             storageKey: saved.storageKey,
             url: saved.url,
@@ -181,46 +186,36 @@ export async function POST(req: NextRequest) {
             private: true,
             jenis: "pokok",
             uploadedById: session.id,
-            suratMasukId: surat.id,
-          },
-        });
-        await audit({
-          userId: session.id,
-          action: "FILE_UPLOADED",
-          entityType: "SuratMasuk",
-          entityId: surat.id,
-          description: `Upload ${saved.nama}`,
-        });
-      } catch (e: any) {
-        // Log tapi jangan gagalkan insert utama jika sebagian file invalid
-        await audit({
-          userId: session.id,
-          action: "FILE_UPLOADED",
-          entityType: "SuratMasuk",
-          entityId: surat.id,
-          description: `Gagal upload: ${e?.message || "error"}`,
-        });
-      }
-    }
-
-    await prisma.trackingLog.createMany({
-      data: [
-        {
-          event: "SURAT_DITERIMA",
-          judul: "Surat diterima Sekretariat",
-          keterangan: `Diterima dari ${d.asalSurat}`,
-          petugasId: session.id,
-          suratMasukId: surat.id,
+          })),
         },
-        {
-          event: "SURAT_DICATAT",
-          judul: "Surat dicatat dalam agenda",
-          keterangan: `Nomor agenda ${nomorAgenda}`,
-          petugasId: session.id,
-          suratMasukId: surat.id,
+        trackingLogs: {
+          create: [
+            {
+              event: "SURAT_DITERIMA",
+              judul: "Surat diterima Sekretariat",
+              keterangan: `Diterima dari ${d.asalSurat}`,
+              petugasId: session.id,
+            },
+            {
+              event: "SURAT_DICATAT",
+              judul: "Surat dicatat dalam agenda",
+              keterangan: `Nomor agenda ${nomorAgenda}`,
+              petugasId: session.id,
+            },
+          ],
         },
-      ],
+      },
     });
+
+    for (const saved of uploadedAttachments) {
+      await audit({
+        userId: session.id,
+        action: "FILE_UPLOADED",
+        entityType: "SuratMasuk",
+        entityId: surat.id,
+        description: `Upload ${saved.nama}`,
+      });
+    }
 
     await audit({
       userId: session.id,

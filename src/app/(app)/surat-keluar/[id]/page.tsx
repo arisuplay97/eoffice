@@ -12,6 +12,7 @@ import {
 import { formatDate, formatDateTime, humanBytes } from "@/lib/utils";
 import { IconFile, IconDownload, IconTracking } from "@/components/ui/Icons";
 import StatusForm from "./status-form";
+import { BsreSignAction } from "./sign-action";
 
 export const dynamic = "force-dynamic";
 
@@ -133,6 +134,13 @@ export default async function SuratKeluarDetail({ params }: { params: { id: stri
             <div className="card p-5">
               <h3 className="text-sm font-semibold text-ink-800 mb-3">Update Status</h3>
               <StatusForm id={item.id} status={item.status} />
+              
+              {item.status === "MENUNGGU_TTD" && ["DIREKSI", "KEPALA_BAGIAN", "SUPER_ADMIN"].includes(session.role) && item.attachments.some(a => a.mime === "application/pdf") && (
+                <div className="mt-4 pt-4 border-t border-ink-200">
+                  <h4 className="text-xs font-semibold text-ink-800 mb-2">Tanda Tangan Elektronik</h4>
+                  <BsreSignAction attachmentId={item.attachments.find(a => a.mime === "application/pdf")!.id} />
+                </div>
+              )}
             </div>
           )}
           <div className="card p-5">

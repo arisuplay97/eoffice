@@ -24,7 +24,7 @@ type NavItem = {
   roles?: Role[];
 };
 
-const MENU: { section: string; items: NavItem[] }[] = [
+export const MENU: { section: string; items: NavItem[] }[] = [
   {
     section: "Utama",
     items: [

@@ -25,14 +25,20 @@ export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
 export const ALLOWED_MIME = new Set<string>([
   "application/pdf",
   "image/jpeg",
+  "image/jpg",
   "image/png",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
 const MIME_TO_EXT: Record<string, string> = {
   "application/pdf": ".pdf",
   "image/jpeg": ".jpg",
+  "image/jpg": ".jpg",
   "image/png": ".png",
+  "application/msword": ".doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
 };
-const ALLOWED_EXT = new Set<string>([".pdf", ".jpg", ".jpeg", ".png"]);
+const ALLOWED_EXT = new Set<string>([".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx"]);
 const FORBIDDEN_EXT = new Set<string>([
   ".js",
   ".mjs",
@@ -69,11 +75,26 @@ function sniffPng(buf: Buffer) {
 function sniffJpg(buf: Buffer) {
   return buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
 }
+function sniffDoc(buf: Buffer) {
+  return (
+    buf.length >= 8 &&
+    buf[0] === 0xd0 && buf[1] === 0xcf && buf[2] === 0x11 && buf[3] === 0xe0 &&
+    buf[4] === 0xa1 && buf[5] === 0xb1 && buf[6] === 0x1a && buf[7] === 0xe1
+  );
+}
+function sniffDocx(buf: Buffer) {
+  return (
+    buf.length >= 4 &&
+    buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04
+  );
+}
 
 function validateMagicBytes(buf: Buffer, mime: string) {
   if (mime === "application/pdf") return sniffPdf(buf);
   if (mime === "image/png") return sniffPng(buf);
-  if (mime === "image/jpeg") return sniffJpg(buf);
+  if (mime === "image/jpeg" || mime === "image/jpg") return sniffJpg(buf);
+  if (mime === "application/msword") return sniffDoc(buf);
+  if (mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return sniffDocx(buf);
   return false;
 }
 
@@ -101,13 +122,13 @@ export async function validateUpload(file: File): Promise<{ buf: Buffer; mime: s
 
   const mime = (file.type || "").toLowerCase();
   if (!ALLOWED_MIME.has(mime))
-    throw new Error("Tipe file tidak diizinkan. Hanya PDF, JPG, atau PNG.");
+    throw new Error("Tipe file tidak diizinkan. Hanya PDF, JPG, PNG, DOC, atau DOCX.");
 
   const origExt = path.extname(file.name || "").toLowerCase();
   if (FORBIDDEN_EXT.has(origExt))
     throw new Error("Ekstensi file tidak diizinkan");
   if (!ALLOWED_EXT.has(origExt))
-    throw new Error("Ekstensi file tidak valid. Hanya .pdf, .jpg, .jpeg, .png.");
+    throw new Error("Ekstensi file tidak valid. Hanya .pdf, .jpg, .jpeg, .png, .doc, .docx.");
 
   const buf = Buffer.from(await file.arrayBuffer());
   if (!validateMagicBytes(buf, mime))
