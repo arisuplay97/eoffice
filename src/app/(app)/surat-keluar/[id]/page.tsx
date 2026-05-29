@@ -135,10 +135,16 @@ export default async function SuratKeluarDetail({ params }: { params: { id: stri
               <h3 className="text-sm font-semibold text-ink-800 mb-3">Update Status</h3>
               <StatusForm id={item.id} status={item.status} />
               
-              {item.status === "MENUNGGU_TTD" && ["DIREKSI", "KEPALA_BAGIAN", "SUPER_ADMIN"].includes(session.role) && item.attachments.some(a => a.mime === "application/pdf") && (
+              {item.status === "MENUNGGU_TTD" && ["DIREKSI", "KEPALA_BAGIAN", "SUPER_ADMIN"].includes(session.role) && (
                 <div className="mt-4 pt-4 border-t border-ink-200">
                   <h4 className="text-xs font-semibold text-ink-800 mb-2">Tanda Tangan Elektronik</h4>
-                  <BsreSignAction attachmentId={item.attachments.find(a => a.mime === "application/pdf")!.id} />
+                  {item.attachments.some(a => a.mime === "application/pdf") ? (
+                    <BsreSignAction attachmentId={item.attachments.find(a => a.mime === "application/pdf")!.id} />
+                  ) : (
+                    <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2.5 border border-amber-200">
+                      Surat ini belum memiliki lampiran dokumen PDF. Unggah lampiran berformat PDF terlebih dahulu untuk melakukan tanda tangan elektronik (TTE BSrE).
+                    </p>
+                  )}
                 </div>
               )}
             </div>
