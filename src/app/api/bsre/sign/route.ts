@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Simpan PDF baru yang telah di TTE
     // Kita buat object File dummy agar bisa pakai saveUpload (karena saveUpload butuh File interface)
-    const fileObj = new File([signedBuf], att.nama, { type: "application/pdf" });
+    const fileObj = new File([new Uint8Array(signedBuf)], att.nama, { type: "application/pdf" });
     const saved = await saveUpload(fileObj);
 
     // 4. Update data attachment dan surat keluar
