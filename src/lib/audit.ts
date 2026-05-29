@@ -31,7 +31,9 @@ export type AuditAction =
   | "FILE_DOWNLOADED"
   | "QR_VERIFY_OPENED"
   | "ACCESS_DENIED"
-  | "RATE_LIMITED";
+  | "RATE_LIMITED"
+  | "BSRE_SIGN_SUCCESS"
+  | "BSRE_SIGN_FAILED";
 
 export function getClientInfo() {
   try {
