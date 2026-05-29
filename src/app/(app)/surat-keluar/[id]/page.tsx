@@ -13,6 +13,7 @@ import { formatDate, formatDateTime, humanBytes } from "@/lib/utils";
 import { IconFile, IconDownload, IconTracking } from "@/components/ui/Icons";
 import StatusForm from "./status-form";
 import { BsreSignAction } from "./sign-action";
+import { AttachmentUpload } from "@/components/attachment-upload";
 
 export const dynamic = "force-dynamic";
 
@@ -125,6 +126,9 @@ export default async function SuratKeluarDetail({ params }: { params: { id: stri
                   </li>
                 ))}
               </ul>
+            )}
+            {canInputSuratKeluar(session.role) && (
+              <AttachmentUpload suratId={item.id} suratType="surat-keluar" />
             )}
           </div>
         </div>

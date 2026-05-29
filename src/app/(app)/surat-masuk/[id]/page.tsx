@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getSession, canCreateDisposisi } from "@/lib/auth";
+import { getSession, canCreateDisposisi, canInputSuratMasuk } from "@/lib/auth";
 import { canViewSuratMasuk } from "@/lib/security";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Timeline, type TimelineItem } from "@/components/ui/Timeline";
 import SuratMasukDetailActions from "./detail-actions";
+import { AttachmentUpload } from "@/components/attachment-upload";
 import {
   PRIORITAS_COLOR,
   SURAT_MASUK_STATUS_COLOR,
@@ -167,6 +168,9 @@ export default async function SuratMasukDetailPage({
                   </li>
                 ))}
               </ul>
+            )}
+            {canInputSuratMasuk(session.role) && (
+              <AttachmentUpload suratId={item.id} suratType="surat-masuk" />
             )}
           </div>
 
