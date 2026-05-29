@@ -75,7 +75,7 @@ export async function signPdf({
     formData.append("tampilan", "INVISIBLE");
   }
 
-  const fileBlob = new Blob([fileBuffer], { type: "application/pdf" });
+  const fileBlob = new Blob([new Uint8Array(fileBuffer)], { type: "application/pdf" });
   formData.append("file", fileBlob, "document.pdf");
 
   const auth = Buffer.from(`${BSRE_USER}:${BSRE_PASS}`).toString("base64");
