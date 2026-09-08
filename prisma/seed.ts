@@ -1,385 +1,395 @@
-import { PrismaClient, Prioritas, SuratMasukStatus, DisposisiStatus, InstruksiDisposisi, TrackingEvent, Role } from "@prisma/client";
+import { PrismaClient, Role, StatusAduan, Prioritas, JenisGangguan, SumberAduan, TipeDokumentasi } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import crypto from "node:crypto";
 
 const prisma = new PrismaClient();
 
-const UNITS: Array<{ kode: string; nama: string; tipe: string }> = [
-  { kode: "DIR", nama: "Direksi", tipe: "DIREKSI" },
-  { kode: "SEK", nama: "Sekretariat Perusahaan", tipe: "SEKRETARIAT" },
-  { kode: "SPI", nama: "Satuan Pengawas Internal", tipe: "BIDANG" },
-  { kode: "HL", nama: "Hubungan Langganan", tipe: "BIDANG" },
-  { kode: "TEK", nama: "Teknik", tipe: "BIDANG" },
-  { kode: "DIS", nama: "Distribusi", tipe: "BIDANG" },
-  { kode: "PRD", nama: "Produksi", tipe: "BIDANG" },
-  { kode: "KEU", nama: "Keuangan", tipe: "BIDANG" },
-  { kode: "UMM", nama: "Umum", tipe: "BIDANG" },
-  { kode: "CB-PRY", nama: "Cabang Praya", tipe: "CABANG" },
-  { kode: "CB-PJT", nama: "Cabang Pujut", tipe: "CABANG" },
-  { kode: "CB-JGT", nama: "Cabang Jonggat", tipe: "CABANG" },
-  { kode: "CB-KPG", nama: "Cabang Kopang", tipe: "CABANG" },
-  { kode: "CB-BTK", nama: "Cabang Batukliang", tipe: "CABANG" },
-  { kode: "CB-BTU", nama: "Cabang Batukliang Utara", tipe: "CABANG" },
-  { kode: "CB-PRG", nama: "Cabang Pringgarata", tipe: "CABANG" },
-  { kode: "CB-JNP", nama: "Cabang Janapria", tipe: "CABANG" },
-  { kode: "CB-PRT", nama: "Cabang Praya Tengah", tipe: "CABANG" },
-  { kode: "CB-PRB", nama: "Cabang Praya Barat", tipe: "CABANG" },
-  { kode: "CB-PBD", nama: "Cabang Praya Barat Daya", tipe: "CABANG" },
-  { kode: "CB-PRY-TMR", nama: "Cabang Praya Timur", tipe: "CABANG" },
+const CABANG_DATA = [
+  { kode: "PRY", nama: "Cabang Praya", wilayah: "Praya", alamat: "Jl. Diponegoro No. 12, Praya", kontak: "0370-654123" },
+  { kode: "PTE", nama: "Cabang Praya Tengah", wilayah: "Praya Tengah", alamat: "Jl. Basuki Rahmat, Praya Tengah", kontak: "0370-654124" },
+  { kode: "PRB", nama: "Cabang Praya Barat", wilayah: "Praya Barat", alamat: "Jl. Penujak, Praya Barat", kontak: "0370-654125" },
+  { kode: "PBD", nama: "Cabang Praya Barat Daya", wilayah: "Praya Barat Daya", alamat: "Jl. Darek, Praya Barat Daya", kontak: "0370-654126" },
+  { kode: "PRT", nama: "Cabang Praya Timur", wilayah: "Praya Timur", alamat: "Jl. Mujur, Praya Timur", kontak: "0370-654127" },
+  { kode: "PJT", nama: "Cabang Pujut", wilayah: "Pujut", alamat: "Jl. Sengkol, Pujut", kontak: "0370-654128" },
+  { kode: "JGT", nama: "Cabang Jonggat", wilayah: "Jonggat", alamat: "Jl. Puyung, Jonggat", kontak: "0370-654129" },
+  { kode: "BTK", nama: "Cabang Batukliang", wilayah: "Batukliang", alamat: "Jl. Mantang, Batukliang", kontak: "0370-654130" },
+  { kode: "BKU", nama: "Cabang Batukliang Utara", wilayah: "Batukliang Utara", alamat: "Jl. Teratak, Batukliang Utara", kontak: "0370-654131" },
+  { kode: "KPG", nama: "Cabang Kopang", wilayah: "Kopang", alamat: "Jl. Raya Kopang No. 8, Kopang", kontak: "0370-654132" },
+  { kode: "JNP", nama: "Cabang Janapria", wilayah: "Janapria", alamat: "Jl. Janapria Raya, Janapria", kontak: "0370-654133" },
+  { kode: "PGR", nama: "Cabang Pringgarata", wilayah: "Pringgarata", alamat: "Jl. Pringgarata, Pringgarata", kontak: "0370-654134" },
 ];
 
-function makeVerifCode(prefix = "TIARA") {
-  const d = new Date();
-  const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
-  const rand = crypto.randomBytes(3).toString("hex").toUpperCase();
-  return `${prefix}-${ymd}-${rand}`;
-}
-
-function hashSig(payload: string) {
-  const secret = process.env.JWT_SECRET || "tiara-secret";
-  return crypto.createHmac("sha256", secret).update(payload).digest("hex").slice(0, 32);
-}
-
 async function main() {
-  // Production safeguard: jangan seed di production kecuali explicit opt-in.
-  if (process.env.NODE_ENV === "production" && process.env.ALLOW_PROD_SEED !== "1") {
-    console.error(
-      "❌ Seed dimatikan di production. Set ALLOW_PROD_SEED=1 untuk memaksa (tidak disarankan)."
-    );
-    process.exit(1);
-  }
+  console.log("Memulai seeding database SIAGA TIARA...");
 
-  console.log("Seeding units...");
-  for (const u of UNITS) {
-    await prisma.unit.upsert({
-      where: { kode: u.kode },
-      update: { nama: u.nama, tipe: u.tipe },
-      create: u,
+  // Bersihkan tabel transaksi jika ada
+  await prisma.crmMessage.deleteMany();
+  await prisma.chatAdminQueue.deleteMany();
+  await prisma.dokumentasiAduan.deleteMany();
+  await prisma.penugasanAduan.deleteMany();
+  await prisma.statusLog.deleteMany();
+  await prisma.aduan.deleteMany();
+  await prisma.petugas.deleteMany();
+  await prisma.pengumumanLayanan.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.cabang.deleteMany();
+  await prisma.systemSetting.deleteMany();
+
+  const passwordHash = await bcrypt.hash("password123", 10);
+
+  // 1. Seed Cabang
+  console.log("Seeding data cabang...");
+  const cabangMap: Record<string, string> = {};
+  for (const c of CABANG_DATA) {
+    const created = await prisma.cabang.create({
+      data: c,
     });
+    cabangMap[c.kode] = created.id;
   }
 
-  const direksi = await prisma.unit.findUnique({ where: { kode: "DIR" } });
-  const sek = await prisma.unit.findUnique({ where: { kode: "SEK" } });
-  const teknik = await prisma.unit.findUnique({ where: { kode: "TEK" } });
-  const keuangan = await prisma.unit.findUnique({ where: { kode: "KEU" } });
-
-  console.log("Seeding default users...");
-  const pwdAdmin = await bcrypt.hash("admin123", 12);
-  const pwdDefault = await bcrypt.hash("password123", 12);
-
-  const admin = await prisma.user.upsert({
-    where: { username: "admin" },
-    update: {},
-    create: {
+  // 2. Seed Users
+  console.log("Seeding akun pengguna...");
+  // Admin Pusat
+  await prisma.user.create({
+    data: {
       username: "admin",
-      password: pwdAdmin,
-      nama: "Administrator TIARA",
+      password: passwordHash,
+      nama: "Administrator Pusat",
       email: "admin@tiara.co.id",
-      jabatan: "Super Administrator",
-      role: Role.SUPER_ADMIN,
-      unitId: sek?.id,
-      // Admin default wajib ganti password setelah login pertama.
-      mustChangePassword: true,
+      role: Role.ADMIN_PUSAT,
+      pin: "123456",
+      aktif: true,
     },
   });
 
-  const direktur = await prisma.user.upsert({
-    where: { username: "direktur" },
-    update: {},
-    create: {
-      username: "direktur",
-      password: pwdDefault,
-      nama: "Ir. Direktur Utama",
-      jabatan: "Direktur Utama",
+  // Direksi
+  await prisma.user.create({
+    data: {
+      username: "direksi",
+      password: passwordHash,
+      nama: "Direksi Operasional",
+      email: "direksi@tiara.co.id",
       role: Role.DIREKSI,
-      unitId: direksi?.id,
+      pin: "123456",
+      aktif: true,
     },
   });
 
-  const sekretariat = await prisma.user.upsert({
-    where: { username: "sekretariat" },
-    update: {},
-    create: {
-      username: "sekretariat",
-      password: pwdDefault,
-      nama: "Staf Sekretariat",
-      jabatan: "Sekretariat Perusahaan",
-      role: Role.SEKRETARIAT,
-      unitId: sek?.id,
-    },
-  });
-
-  const kabagTeknik = await prisma.user.upsert({
-    where: { username: "kabag.teknik" },
-    update: {},
-    create: {
-      username: "kabag.teknik",
-      password: pwdDefault,
-      nama: "Kepala Bagian Teknik",
-      jabatan: "Kepala Bagian Teknik",
-      role: Role.KEPALA_BAGIAN,
-      unitId: teknik?.id,
-    },
-  });
-
-  const staf = await prisma.user.upsert({
-    where: { username: "staf.teknik" },
-    update: {},
-    create: {
-      username: "staf.teknik",
-      password: pwdDefault,
-      nama: "Staf Teknik",
-      jabatan: "Staf Teknik",
-      role: Role.STAF,
-      unitId: teknik?.id,
-    },
-  });
-
-  await prisma.user.upsert({
-    where: { username: "kabag.keuangan" },
-    update: {},
-    create: {
-      username: "kabag.keuangan",
-      password: pwdDefault,
-      nama: "Kepala Bagian Keuangan",
-      jabatan: "Kepala Bagian Keuangan",
-      role: Role.KEPALA_BAGIAN,
-      unitId: keuangan?.id,
-    },
-  });
-
-  console.log("Seeding counters...");
-  for (const key of ["agenda", "surat-keluar"]) {
-    await prisma.counter.upsert({
-      where: { key },
-      update: {},
-      create: { key, value: 0 },
-    });
-  }
-
-  console.log("Seeding settings...");
-  for (const s of [
-    { key: "company.name", value: "PERUMDAM Tirta Ardhia Rinjani" },
-    { key: "company.short", value: "TIARA" },
-    { key: "company.region", value: "Kabupaten Lombok Tengah" },
-    { key: "app.name", value: "E-Office TIARA" },
-  ]) {
-    await prisma.setting.upsert({
-      where: { key: s.key },
-      update: { value: s.value },
-      create: s,
-    });
-  }
-
-  // Sample Surat Masuk
-  const existingSurat = await prisma.suratMasuk.count();
-  if (existingSurat === 0) {
-    console.log("Seeding contoh surat masuk & disposisi...");
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-
-    const nomorAgenda1 = `AGD/${y}/${m}/0001`;
-    const kode1 = makeVerifCode();
-    const sig1 = hashSig(`${nomorAgenda1}|${kode1}`);
-    const sm1 = await prisma.suratMasuk.create({
+  // Staf/Admin Cabang untuk setiap cabang
+  for (const c of CABANG_DATA) {
+    const uname = `cabang_${c.kode.toLowerCase()}`;
+    await prisma.user.create({
       data: {
-        nomorAgenda: nomorAgenda1,
-        nomorSurat: "001/PEMKAB-LT/III/2026",
-        tanggalSurat: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 3),
-        tanggalDiterima: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2),
-        asalSurat: "Pemerintah Kabupaten Lombok Tengah",
-        perihal: "Undangan Rapat Koordinasi Penyediaan Air Bersih",
-        ringkasan:
-          "Mengundang Direktur Utama PERUMDAM Tirta Ardhia Rinjani untuk menghadiri rapat koordinasi penyediaan air bersih wilayah Lombok Tengah.",
-        prioritas: Prioritas.PENTING,
-        status: SuratMasukStatus.DIDISPOSISIKAN,
-        catatan: "Surat resmi, mohon segera ditindaklanjuti.",
-        kodeVerifikasi: kode1,
-        signatureHash: sig1,
-        unitTujuanId: direksi?.id,
-        createdById: sekretariat.id,
+        username: uname,
+        password: passwordHash,
+        nama: `Staf Administrasi ${c.nama}`,
+        email: `${uname}@tiara.co.id`,
+        role: Role.ADMIN_CABANG,
+        cabangId: cabangMap[c.kode],
+        pin: "123456",
+        aktif: true,
+      },
+    });
+  }
+
+  // 3. Seed Petugas Lapangan
+  console.log("Seeding petugas lapangan...");
+  const petugasMap: Record<string, string[]> = {};
+  for (const c of CABANG_DATA) {
+    petugasMap[c.kode] = [];
+    const p1 = await prisma.petugas.create({
+      data: {
+        nama: `Ahmad ${c.wilayah}`,
+        noHp: `6281907${Math.floor(100000 + Math.random() * 900000)}`,
+        role: "Koordinator Lapangan",
+        cabangId: cabangMap[c.kode],
+      },
+    });
+    const p2 = await prisma.petugas.create({
+      data: {
+        nama: `Rian Teknisi ${c.wilayah}`,
+        noHp: `6287865${Math.floor(100000 + Math.random() * 900000)}`,
+        role: "Teknisi Jaringan",
+        cabangId: cabangMap[c.kode],
+      },
+    });
+    petugasMap[c.kode].push(p1.id, p2.id);
+  }
+
+  // 4. Seed Pengumuman Layanan
+  console.log("Seeding pengumuman layanan...");
+  const now = new Date();
+  await prisma.pengumumanLayanan.create({
+    data: {
+      judul: "Pemeliharaan Pipa Induk Distribusi Jalur Praya - Jonggat",
+      isi: "Akan dilakukan perbaikan kebocoran pipa transmisi utama diameter 300mm di wilayah perbatasan Praya dan Jonggat. Suplai air berpotensi mengecil sementara waktu.",
+      status: "AKTIF",
+      mulai: new Date(now.getTime() - 4 * 3600 * 1000),
+      selesai: new Date(now.getTime() + 20 * 3600 * 1000),
+      cabangId: cabangMap["PRY"],
+      wilayahTerdampak: "Praya dan Jonggat",
+      jenisDicegah: "Pipa Bocor",
+      cegahAduan: true,
+    },
+  });
+
+  // 5. Seed System Settings
+  console.log("Seeding konfigurasi sistem...");
+  const settings = [
+    { key: "SLA_RESPONS_JAM", value: "24", description: "Batas waktu respons pertama semua tiket gangguan" },
+    { key: "JAM_KERJA_START", value: "08:00", description: "Jam mulai pelayanan" },
+    { key: "JAM_KERJA_END", value: "16:00", description: "Jam selesai pelayanan" },
+    { key: "RATE_LIMIT_DAILY", value: "50", description: "Batas aduan harian per nomor WA" },
+    { key: "PENGUMUMAN_REPEAT_HOURS", value: "6", description: "Jeda pengulangan banner pengumuman" },
+  ];
+  for (const s of settings) {
+    await prisma.systemSetting.create({ data: s });
+  }
+
+  // 6. Seed Aduan Realistis
+  console.log("Seeding data aduan gangguan air...");
+  const mockTickets = [
+    {
+      id: "PRY26090801",
+      kode: "PRY",
+      nama: "H. Mustofa Kamal",
+      noPelanggan: "08912345",
+      noHp: "6281912345678",
+      jenis: JenisGangguan.AIR_MATI,
+      prioritas: Prioritas.DARURAT,
+      status: StatusAduan.BARU,
+      hoursAgo: 26, // Overdue (> 24 hours without response)
+      keterangan: "Air tidak mengalir sejak kemarin sore di seluruh blok A perumahan.",
+      wilayah: "Praya",
+      desa: "Tiwinggalih",
+      unit: "Teknik",
+    },
+    {
+      id: "JGT26090802",
+      kode: "JGT",
+      nama: "Siti Rahmawati",
+      noPelanggan: "08923456",
+      noHp: "6287890123456",
+      jenis: JenisGangguan.PIPA_BOCOR,
+      prioritas: Prioritas.TINGGI,
+      status: StatusAduan.BARU,
+      hoursAgo: 21, // Near SLA (sisa 3 jam lagi)
+      keterangan: "Pipa tersier di depan musholla bocor menyembur ke jalan raya.",
+      wilayah: "Jonggat",
+      desa: "Puyung",
+      unit: "Distribusi",
+    },
+    {
+      id: "BTK26090803",
+      kode: "BTK",
+      nama: "Lalu Suparlan",
+      noPelanggan: "08934567",
+      noHp: "6285234567890",
+      jenis: JenisGangguan.AIR_KERUH,
+      prioritas: Prioritas.SEDANG,
+      status: StatusAduan.PROSES,
+      hoursAgo: 8,
+      responseHoursAgo: 6, // Responded 2 jam setelah masuk
+      keterangan: "Air berwarna kecokelatan dan berpasir.",
+      wilayah: "Batukliang",
+      desa: "Mantang",
+      unit: "Produksi",
+    },
+    {
+      id: "PJT26090804",
+      kode: "PJT",
+      nama: "Baiq Nurhayati",
+      noPelanggan: "08945678",
+      noHp: "6281809876543",
+      jenis: JenisGangguan.TEKANAN_RENDAH,
+      prioritas: Prioritas.SEDANG,
+      status: StatusAduan.DALAM_PENGERJAAN,
+      hoursAgo: 14,
+      responseHoursAgo: 12,
+      keterangan: "Debit air sangat kecil hanya menetes di malam hari.",
+      wilayah: "Pujut",
+      desa: "Sengkol",
+      unit: "Teknik",
+    },
+    {
+      id: "PRY26090805",
+      kode: "PRY",
+      nama: "I Wayan Sudarma",
+      noPelanggan: "08956789",
+      noHp: "6287765432109",
+      jenis: JenisGangguan.PIPA_BOCOR,
+      prioritas: Prioritas.TINGGI,
+      status: StatusAduan.SELESAI,
+      hoursAgo: 30,
+      responseHoursAgo: 28,
+      doneHoursAgo: 4,
+      keterangan: "Pipa meteran patah tertabrak kendaraan roda dua.",
+      wilayah: "Praya",
+      desa: "Leneng",
+      unit: "Distribusi",
+    },
+    {
+      id: "KPG26090806",
+      kode: "KPG",
+      nama: "Ahmad Zaini",
+      noPelanggan: "08967890",
+      noHp: "6281987654321",
+      jenis: JenisGangguan.METER_BERMASALAH,
+      prioritas: Prioritas.RENDAH,
+      status: StatusAduan.SELESAI,
+      hoursAgo: 48,
+      responseHoursAgo: 46,
+      doneHoursAgo: 24,
+      keterangan: "Kaca meteran buram dan jarum putaran tidak berputar saat kran dibuka.",
+      wilayah: "Kopang",
+      desa: "Darmaji",
+      unit: "Hublang",
+    },
+    {
+      id: "JNP26090807",
+      kode: "JNP",
+      nama: "Mahsun Subki",
+      noPelanggan: "08978901",
+      noHp: "6285321098765",
+      jenis: JenisGangguan.AIR_MATI,
+      prioritas: Prioritas.TINGGI,
+      status: StatusAduan.DIRESPONS,
+      hoursAgo: 3,
+      responseHoursAgo: 2,
+      keterangan: "Aliran air mati total sejak pagi tanpa pemberitahuan.",
+      wilayah: "Janapria",
+      desa: "Saba",
+      unit: "Cabang",
+    },
+    {
+      id: "PGR26090808",
+      kode: "PGR",
+      nama: "Endang Sulastri",
+      noPelanggan: "08989012",
+      noHp: "6287812340987",
+      jenis: JenisGangguan.TEKANAN_RENDAH,
+      prioritas: Prioritas.RENDAH,
+      status: StatusAduan.KENDALA,
+      hoursAgo: 18,
+      responseHoursAgo: 16,
+      keterangan: "Debit mengecil karena elevasi rumah tinggi di perbukitan.",
+      wilayah: "Pringgarata",
+      desa: "Menemeng",
+      unit: "Distribusi",
+    },
+  ];
+
+  for (const t of mockTickets) {
+    const masukTime = new Date(now.getTime() - t.hoursAgo * 3600 * 1000);
+    const respTime = t.responseHoursAgo ? new Date(now.getTime() - t.responseHoursAgo * 3600 * 1000) : null;
+    const selesaiTime = t.doneHoursAgo ? new Date(now.getTime() - t.doneHoursAgo * 3600 * 1000) : null;
+
+    const aduan = await prisma.aduan.create({
+      data: {
+        id: t.id,
+        cabangId: cabangMap[t.kode],
+        wilayah: t.wilayah,
+        desa: t.desa,
+        noPelanggan: t.noPelanggan,
+        namaPelanggan: t.nama,
+        noHp: t.noHp,
+        jenisGangguan: t.jenis,
+        prioritas: t.prioritas,
+        status: t.status,
+        sumberAduan: SumberAduan.WHATSAPP,
+        unit: t.unit,
+        keterangan: t.keterangan,
+        waktuMasuk: masukTime,
+        waktuRespons: respTime,
+        waktuSelesai: selesaiTime,
+        slaJam: 24,
+        lokasiDetail: `Dekat gapura desa ${t.desa}, ${t.wilayah}`,
+        linkMaps: "https://maps.google.com/?q=-8.7056,116.2706",
       },
     });
 
-    await prisma.trackingLog.createMany({
-      data: [
-        {
-          event: TrackingEvent.SURAT_DITERIMA,
-          judul: "Surat diterima Sekretariat",
-          keterangan: "Fisik surat diterima oleh petugas sekretariat",
-          petugasId: sekretariat.id,
-          suratMasukId: sm1.id,
+    // Log Masuk
+    await prisma.statusLog.create({
+      data: {
+        aduanId: aduan.id,
+        statusSebelumnya: null,
+        statusBaru: StatusAduan.BARU,
+        waktu: masukTime,
+        actorNama: "Sistem Bot WhatsApp",
+        keterangan: "Aduan diterima dari WhatsApp pelanggan",
+      },
+    });
+
+    // Log Respons jika ada
+    if (respTime) {
+      await prisma.statusLog.create({
+        data: {
+          aduanId: aduan.id,
+          statusSebelumnya: StatusAduan.BARU,
+          statusBaru: StatusAduan.DIRESPONS,
+          waktu: respTime,
+          actorNama: "Petugas Lapangan",
+          keterangan: "Petugas telah menerima tugas dan menuju lokasi pemeriksaan",
         },
-        {
-          event: TrackingEvent.SURAT_DICATAT,
-          judul: "Surat dicatat dalam agenda",
-          keterangan: `Nomor agenda ${nomorAgenda1}`,
-          petugasId: sekretariat.id,
-          suratMasukId: sm1.id,
+      });
+    }
+
+    // Log Selesai & Dokumentasi jika status selesai
+    if (selesaiTime) {
+      await prisma.statusLog.create({
+        data: {
+          aduanId: aduan.id,
+          statusSebelumnya: StatusAduan.PROSES,
+          statusBaru: StatusAduan.SELESAI,
+          waktu: selesaiTime,
+          actorNama: "Ahmad Koordinator",
+          keterangan: "Penyambungan pipa selesai dan air mengalir normal",
         },
-      ],
-    });
+      });
 
-    const disp1 = await prisma.disposisi.create({
-      data: {
-        suratMasukId: sm1.id,
-        fromUserId: sekretariat.id,
-        toUserId: direktur.id,
-        toUnitId: direksi?.id,
-        instruksi: InstruksiDisposisi.UNTUK_DITINDAKLANJUTI,
-        catatan: "Mohon arahan lebih lanjut untuk dihadiri.",
-        deadline: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 5),
-        status: DisposisiStatus.DIPROSES,
-      },
-    });
-
-    await prisma.trackingLog.create({
-      data: {
-        event: TrackingEvent.DISPOSISI_DIBUAT,
-        judul: "Disposisi dibuat oleh Sekretariat",
-        keterangan: "Ditujukan ke Direktur Utama",
-        petugasId: sekretariat.id,
-        suratMasukId: sm1.id,
-        disposisiId: disp1.id,
-      },
-    });
-
-    // Direksi meneruskan ke Kabag
-    const disp2 = await prisma.disposisi.create({
-      data: {
-        suratMasukId: sm1.id,
-        parentId: disp1.id,
-        fromUserId: direktur.id,
-        toUserId: kabagTeknik.id,
-        toUnitId: teknik?.id,
-        instruksi: InstruksiDisposisi.SIAPKAN_BAHAN,
-        catatan: "Siapkan bahan presentasi dan data teknis distribusi.",
-        deadline: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 3),
-        status: DisposisiStatus.DIPROSES,
-      },
-    });
-
-    await prisma.trackingLog.create({
-      data: {
-        event: TrackingEvent.DISPOSISI_DITERUSKAN,
-        judul: "Disposisi diteruskan Direksi ke Kabag Teknik",
-        petugasId: direktur.id,
-        suratMasukId: sm1.id,
-        disposisiId: disp2.id,
-      },
-    });
-
-    // Kabag meneruskan ke Staf
-    await prisma.disposisi.create({
-      data: {
-        suratMasukId: sm1.id,
-        parentId: disp2.id,
-        fromUserId: kabagTeknik.id,
-        toUserId: staf.id,
-        toUnitId: teknik?.id,
-        instruksi: InstruksiDisposisi.BUAT_LAPORAN,
-        catatan: "Tolong buat ringkasan data distribusi 3 bulan terakhir.",
-        deadline: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 2),
-        status: DisposisiStatus.BARU,
-      },
-    });
-
-    // Surat masuk kedua
-    const nomorAgenda2 = `AGD/${y}/${m}/0002`;
-    const kode2 = makeVerifCode();
-    const sig2 = hashSig(`${nomorAgenda2}|${kode2}`);
-    const sm2 = await prisma.suratMasuk.create({
-      data: {
-        nomorAgenda: nomorAgenda2,
-        nomorSurat: "045/BPK-RI/IV/2026",
-        tanggalSurat: now,
-        asalSurat: "BPK Perwakilan NTB",
-        perihal: "Pemberitahuan Pemeriksaan Laporan Keuangan",
-        ringkasan: "Pemeriksaan laporan keuangan tahun buku 2025.",
-        prioritas: Prioritas.SEGERA,
-        status: SuratMasukStatus.DITERIMA,
-        kodeVerifikasi: kode2,
-        signatureHash: sig2,
-        unitTujuanId: keuangan?.id,
-        createdById: sekretariat.id,
-      },
-    });
-
-    await prisma.trackingLog.create({
-      data: {
-        event: TrackingEvent.SURAT_DITERIMA,
-        judul: "Surat diterima Sekretariat",
-        petugasId: sekretariat.id,
-        suratMasukId: sm2.id,
-      },
-    });
-
-    // Update counter
-    const monthKey = `agenda-${y}-${m}`;
-    await prisma.counter.upsert({
-      where: { key: monthKey },
-      update: { value: 2 },
-      create: { key: monthKey, value: 2 },
-    });
-    await prisma.counter.upsert({
-      where: { key: "agenda" },
-      update: { value: 2 },
-      create: { key: "agenda", value: 2 },
-    });
-
-    // Contoh surat keluar
-    const nomorSK = `TAR/SEK/${y}/${m}/0001`;
-    const kodeSK = makeVerifCode();
-    const sigSK = hashSig(`${nomorSK}|${kodeSK}`);
-    await prisma.suratKeluar.create({
-      data: {
-        nomorSurat: nomorSK,
-        tujuan: "Pemerintah Kabupaten Lombok Tengah",
-        perihal: "Laporan Progress Program Air Bersih TW1",
-        ringkasan: "Laporan progress program penyediaan air bersih triwulan pertama.",
-        tanggalSurat: now,
-        penandatangan: "Direktur Utama",
-        unitPembuatId: sek?.id,
-        createdById: sekretariat.id,
-        kodeVerifikasi: kodeSK,
-        signatureHash: sigSK,
-      },
-    });
-
-    const skMonthKey = `sk-SEK-${y}-${m}`;
-    await prisma.counter.upsert({
-      where: { key: skMonthKey },
-      update: { value: 1 },
-      create: { key: skMonthKey, value: 1 },
-    });
-    await prisma.counter.upsert({
-      where: { key: "surat-keluar" },
-      update: { value: 1 },
-      create: { key: "surat-keluar", value: 1 },
-    });
+      await prisma.dokumentasiAduan.create({
+        data: {
+          aduanId: aduan.id,
+          tipeFoto: TipeDokumentasi.FOTO_SELESAI,
+          fotoUrl: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop",
+          caption: "Perbaikan pipa tuntas, pengujian tekanan air 1.5 bar normal.",
+          uploadedBy: "Petugas Lapangan",
+          isValid: true,
+          createdAt: selesaiTime,
+        },
+      });
+    }
   }
 
-  console.log("Seed selesai.");
-  console.log("\n========================================");
-  console.log("⚠️  PERINGATAN KEAMANAN");
-  console.log("========================================");
-  console.log("Akun default telah dibuat. WAJIB ganti");
-  console.log("password segera setelah login pertama!");
-  console.log("========================================\n");
-  console.log("Akun default:");
-  console.log("  admin / admin123  (SUPER_ADMIN)");
-  console.log("  direktur / password123 (DIREKSI)");
-  console.log("  sekretariat / password123 (SEKRETARIAT)");
-  console.log("  kabag.teknik / password123 (KEPALA_BAGIAN)");
-  console.log("  staf.teknik / password123 (STAF)");
-  console.log("\nJangan jalankan seed ini di production tanpa");
-  console.log("mengganti password default di env atau langsung di DB.");
+  // 7. Seed Chat Admin Queue
+  console.log("Seeding antrean live chat...");
+  const q1 = await prisma.chatAdminQueue.create({
+    data: {
+      phone: "6281999888777",
+      nama: "Pak Rudi Tiwinggalih",
+      aduanId: "PRY26090801",
+      status: "OPEN",
+      context: "Menanyakan perkembangan tindak lanjut air mati",
+      lastCustomerMessage: "Halo admin, kapan teknisi tiba di lokasi perumahan?",
+      lastCustomerAt: new Date(now.getTime() - 25 * 60 * 1000),
+      windowExpiresAt: new Date(now.getTime() + 23 * 3600 * 1000),
+    },
+  });
+
+  await prisma.crmMessage.create({
+    data: {
+      queueId: q1.id,
+      sender: "CUSTOMER",
+      message: "Halo admin, kapan teknisi tiba di lokasi perumahan?",
+      createdAt: new Date(now.getTime() - 25 * 60 * 1000),
+    },
+  });
+
+  console.log("Seeding database SIAGA TIARA selesai dengan sukses!");
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error("Gagal melakukan seed:", e);
     process.exit(1);
   })
   .finally(async () => {

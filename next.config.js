@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 
 const isProd = process.env.NODE_ENV === "production";
+const isHttpsProd = isProd && (process.env.ENABLE_HTTPS === "true" || process.env.VERCEL === "1");
 
 // Content Security Policy
 // - Next.js inline runtime butuh 'unsafe-inline' (kita pakai strict non-nonce mode).
@@ -22,7 +23,7 @@ const CSP = [
   "media-src 'self'",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
-  ...(isProd ? ["upgrade-insecure-requests"] : []),
+  ...(isHttpsProd ? ["upgrade-insecure-requests"] : []),
 ].join("; ");
 
 const securityHeaders = [
@@ -39,7 +40,7 @@ const securityHeaders = [
   { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
-  ...(isProd
+  ...(isHttpsProd
     ? [
         {
           key: "Strict-Transport-Security",

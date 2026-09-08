@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
+import { ThemeProvider } from "@/components/ThemeProvider";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "E-Office TIARA",
+  title: "SIAGA TIARA — PERUMDAM Tirta Ardhia Rinjani",
   description:
-    "Sistem Administrasi Persuratan, Disposisi, Tracking Dokumen, dan Arsip Digital - PERUMDAM Tirta Ardhia Rinjani",
+    "Sistem Informasi Gangguan Air Terpadu Kabupaten Lombok Tengah — PERUMDAM Tirta Ardhia Rinjani",
 };
 
 export default function RootLayout({
@@ -14,9 +21,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
-      <body className="min-h-screen bg-ink-50">
-        <ToastProvider>{children}</ToastProvider>
+    <html lang="id" className={`dark ${inter.className}`} suppressHydrationWarning>
+      <body className={`min-h-screen bg-[#090b0e] text-slate-100 dark:bg-dark-bg dark:text-dark-text antialiased transition-colors duration-200 ${inter.className} font-sans`}>
+        <ThemeProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

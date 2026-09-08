@@ -1,107 +1,91 @@
-import type {
-  Role,
-  Prioritas,
-  SuratMasukStatus,
-  SuratKeluarStatus,
-  DisposisiStatus,
-  InstruksiDisposisi,
-} from "@prisma/client";
+import { StatusAduan, Prioritas, JenisGangguan, SumberAduan, Role } from "@prisma/client";
 
-export const PRIORITAS_OPTIONS: { value: Prioritas; label: string }[] = [
-  { value: "BIASA", label: "Biasa" },
-  { value: "PENTING", label: "Penting" },
-  { value: "SEGERA", label: "Segera" },
-  { value: "RAHASIA", label: "Rahasia" },
+export const APP_NAME = "SIAGA TIARA";
+export const APP_SUBTITLE = "Sistem Informasi Gangguan Air Terpadu";
+export const COMPANY_NAME = "PERUMDAM Tirta Ardhia Rinjani";
+export const REGION_NAME = "Lombok Tengah";
+
+export const SLA_RESPONS_DEFAULT_HOURS = 24;
+
+export const CABANG_LIST = [
+  { kode: "PRY", nama: "Cabang Praya", wilayah: "Praya" },
+  { kode: "PTE", nama: "Cabang Praya Tengah", wilayah: "Praya Tengah" },
+  { kode: "PRB", nama: "Cabang Praya Barat", wilayah: "Praya Barat" },
+  { kode: "PBD", nama: "Cabang Praya Barat Daya", wilayah: "Praya Barat Daya" },
+  { kode: "PRT", nama: "Cabang Praya Timur", wilayah: "Praya Timur" },
+  { kode: "PJT", nama: "Cabang Pujut", wilayah: "Pujut" },
+  { kode: "JGT", nama: "Cabang Jonggat", wilayah: "Jonggat" },
+  { kode: "BTK", nama: "Cabang Batukliang", wilayah: "Batukliang" },
+  { kode: "BKU", nama: "Cabang Batukliang Utara", wilayah: "Batukliang Utara" },
+  { kode: "KPG", nama: "Cabang Kopang", wilayah: "Kopang" },
+  { kode: "JNP", nama: "Cabang Janapria", wilayah: "Janapria" },
+  { kode: "PGR", nama: "Cabang Pringgarata", wilayah: "Pringgarata" },
 ];
 
-export const PRIORITAS_COLOR: Record<Prioritas, string> = {
-  BIASA: "bg-slate-100 text-slate-700 ring-slate-200",
-  PENTING: "bg-amber-50 text-amber-700 ring-amber-200",
-  SEGERA: "bg-red-50 text-red-700 ring-red-200",
-  RAHASIA: "bg-purple-50 text-purple-700 ring-purple-200",
+export const WILAYAH_LIST = [
+  "Praya",
+  "Praya Tengah",
+  "Praya Barat",
+  "Praya Barat Daya",
+  "Praya Timur",
+  "Pujut",
+  "Jonggat",
+  "Batukliang",
+  "Batukliang Utara",
+  "Kopang",
+  "Janapria",
+  "Pringgarata",
+];
+
+export const UNIT_LIST = [
+  "Cabang",
+  "Hublang",
+  "Teknik",
+  "Distribusi",
+  "Produksi",
+  "IT",
+  "Lainnya",
+];
+
+export const STATUS_LABELS: Record<StatusAduan, string> = {
+  [StatusAduan.BARU]: "Baru",
+  [StatusAduan.DIRESPONS]: "Direspons",
+  [StatusAduan.PROSES]: "Proses",
+  [StatusAduan.DALAM_PENGERJAAN]: "Dalam Pengerjaan",
+  [StatusAduan.KENDALA]: "Kendala",
+  [StatusAduan.SELESAI]: "Selesai",
+  [StatusAduan.DITUNDA]: "Ditunda",
+  [StatusAduan.BATAL]: "Batal",
 };
 
-export const SURAT_MASUK_STATUS_LABEL: Record<SuratMasukStatus, string> = {
-  DITERIMA: "Diterima",
-  DIDISPOSISIKAN: "Didisposisikan",
-  DIPROSES: "Diproses",
-  SELESAI: "Selesai",
-  DIARSIPKAN: "Diarsipkan",
+export const PRIORITAS_LABELS: Record<Prioritas, string> = {
+  [Prioritas.RENDAH]: "Rendah",
+  [Prioritas.SEDANG]: "Sedang",
+  [Prioritas.TINGGI]: "Tinggi",
+  [Prioritas.DARURAT]: "Darurat",
 };
 
-export const SURAT_MASUK_STATUS_COLOR: Record<SuratMasukStatus, string> = {
-  DITERIMA: "bg-blue-50 text-blue-700 ring-blue-200",
-  DIDISPOSISIKAN: "bg-indigo-50 text-indigo-700 ring-indigo-200",
-  DIPROSES: "bg-amber-50 text-amber-700 ring-amber-200",
-  SELESAI: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  DIARSIPKAN: "bg-slate-100 text-slate-700 ring-slate-200",
+export const JENIS_GANGGUAN_LABELS: Record<JenisGangguan, string> = {
+  [JenisGangguan.AIR_MATI]: "Air Mati",
+  [JenisGangguan.TEKANAN_RENDAH]: "Tekanan Rendah",
+  [JenisGangguan.AIR_KERUH]: "Air Keruh",
+  [JenisGangguan.PIPA_BOCOR]: "Pipa Bocor",
+  [JenisGangguan.METER_BERMASALAH]: "Meter Bermasalah",
+  [JenisGangguan.TAGIHAN]: "Tagihan",
+  [JenisGangguan.SAMBUNGAN_BARU]: "Sambungan Baru",
+  [JenisGangguan.LAINNYA]: "Lainnya",
 };
 
-export const SURAT_KELUAR_STATUS_LABEL: Record<SuratKeluarStatus, string> = {
-  DRAFT: "Draft",
-  MENUNGGU_PARAF: "Menunggu Paraf",
-  MENUNGGU_TTD: "Menunggu Tanda Tangan",
-  TERKIRIM: "Terkirim",
-  DIARSIPKAN: "Diarsipkan",
+export const SUMBER_ADUAN_LABELS: Record<SumberAduan, string> = {
+  [SumberAduan.WHATSAPP]: "WhatsApp",
+  [SumberAduan.DASHBOARD]: "Input Manual",
+  [SumberAduan.TELEPON]: "Telepon",
+  [SumberAduan.LANGSUNG]: "Datang Langsung",
 };
 
-export const SURAT_KELUAR_STATUS_COLOR: Record<SuratKeluarStatus, string> = {
-  DRAFT: "bg-slate-100 text-slate-700 ring-slate-200",
-  MENUNGGU_PARAF: "bg-amber-50 text-amber-700 ring-amber-200",
-  MENUNGGU_TTD: "bg-orange-50 text-orange-700 ring-orange-200",
-  TERKIRIM: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  DIARSIPKAN: "bg-slate-100 text-slate-700 ring-slate-200",
+export const ROLE_LABELS: Record<Role, string> = {
+  [Role.ADMIN_PUSAT]: "Admin Pusat",
+  [Role.ADMIN_CABANG]: "Staf Cabang",
+  [Role.DIREKSI]: "Direksi",
+  [Role.PETUGAS]: "Petugas Lapangan",
 };
-
-export const DISPOSISI_STATUS_LABEL: Record<DisposisiStatus, string> = {
-  BARU: "Baru",
-  DIBACA: "Dibaca",
-  DIPROSES: "Diproses",
-  DITINDAKLANJUTI: "Ditindaklanjuti",
-  SELESAI: "Selesai",
-  DITOLAK: "Ditolak",
-};
-
-export const DISPOSISI_STATUS_COLOR: Record<DisposisiStatus, string> = {
-  BARU: "bg-blue-50 text-blue-700 ring-blue-200",
-  DIBACA: "bg-indigo-50 text-indigo-700 ring-indigo-200",
-  DIPROSES: "bg-amber-50 text-amber-700 ring-amber-200",
-  DITINDAKLANJUTI: "bg-sky-50 text-sky-700 ring-sky-200",
-  SELESAI: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  DITOLAK: "bg-red-50 text-red-700 ring-red-200",
-};
-
-export const INSTRUKSI_LABEL: Record<InstruksiDisposisi, string> = {
-  UNTUK_DIKETAHUI: "Untuk Diketahui",
-  UNTUK_DITINDAKLANJUTI: "Untuk Ditindaklanjuti",
-  UNTUK_DIPELAJARI: "Untuk Dipelajari",
-  UNTUK_DIKOORDINASIKAN: "Untuk Dikoordinasikan",
-  UNTUK_DIJAWAB: "Untuk Dijawab",
-  UNTUK_DIARSIPKAN: "Untuk Diarsipkan",
-  HADIRI_WAKILI: "Hadiri / Wakili",
-  SIAPKAN_BAHAN: "Siapkan Bahan",
-  BUAT_LAPORAN: "Buat Laporan",
-};
-
-export const INSTRUKSI_OPTIONS: { value: InstruksiDisposisi; label: string }[] =
-  (Object.keys(INSTRUKSI_LABEL) as InstruksiDisposisi[]).map((value) => ({
-    value,
-    label: INSTRUKSI_LABEL[value],
-  }));
-
-export const ROLE_LABEL: Record<Role, string> = {
-  SUPER_ADMIN: "Super Admin",
-  DIREKSI: "Direksi",
-  SEKRETARIAT: "Sekretariat",
-  KEPALA_BAGIAN: "Kepala Bagian",
-  STAF: "Staf",
-  VIEWER: "Viewer",
-};
-
-export const ROLE_OPTIONS: { value: Role; label: string }[] = (
-  Object.keys(ROLE_LABEL) as Role[]
-).map((value) => ({ value, label: ROLE_LABEL[value] }));
-
-export const APP_NAME = "E-Office TIARA";
-export const COMPANY_NAME = "PERUMDAM Tirta Ardhia Rinjani";
-export const COMPANY_REGION = "Kabupaten Lombok Tengah";

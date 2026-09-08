@@ -1,142 +1,81 @@
-import { NextRequest } from "next/server";
-import bcrypt from "bcryptjs";
-import { z } from "zod";
+import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { signSession, setSessionCookie } from "@/lib/auth";
-import { fail, ok } from "@/lib/api";
-import {
-  isRateLimited,
-  recordAttempt,
-  lockUser,
-  incFailedLogin,
-  resetFailedLogin,
-  RATE_LIMIT_CONFIG,
-} from "@/lib/rate-limit";
-import { audit, getClientInfo } from "@/lib/audit";
-import { assertSameOrigin, cleanText } from "@/lib/security";
-
-export const runtime = "nodejs";
-
-const schema = z.object({
-  username: z.string().min(1, "Username wajib diisi").max(100),
-  password: z.string().min(1, "Password wajib diisi").max(200),
-});
-
-// Generic message untuk semua jenis kegagalan (tidak boleh membocorkan info)
-const GENERIC_FAIL = "Username atau password salah";
+import bcrypt from "bcryptjs";
+import { signSession, setSessionCookie, type SessionUser } from "@/lib/auth";
+import { Role } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   try {
-    assertSameOrigin(req);
-  } catch (r) {
-    if (r instanceof Response) return r;
-    return fail("Origin tidak valid", 403);
-  }
+    const body = await req.json();
+    const { username, password, pin } = body;
 
-  const { ip, ua } = getClientInfo();
+    if (!username) {
+      return NextResponse.json(
+        { ok: false, error: "Username atau cabang wajib diisi." },
+        { status: 400 }
+      );
+    }
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return fail("Request tidak valid", 400);
-  }
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) return fail(GENERIC_FAIL, 401);
-
-  const username = cleanText(parsed.data.username, { max: 100 }).trim();
-  const password = parsed.data.password;
-  if (!username || !password) return fail(GENERIC_FAIL, 401);
-
-  // Rate limit per (IP + username)
-  const rl = await isRateLimited(ip, username);
-  if (rl.limited) {
-    await audit({
-      action: "RATE_LIMITED",
-      description: `Login throttled for ${username}`,
-      ip,
-      ua,
+    const user = await prisma.user.findFirst({
+      where: {
+        username: { equals: String(username).trim(), mode: "insensitive" },
+      },
+      include: { cabang: true },
     });
-    return fail(
-      `Terlalu banyak percobaan. Coba lagi dalam ${RATE_LIMIT_CONFIG.WINDOW_MINUTES} menit.`,
-      429
-    );
-  }
 
-  const user = await prisma.user.findUnique({ where: { username } });
+    if (!user || !user.aktif) {
+      return NextResponse.json(
+        { ok: false, error: "Akun tidak ditemukan atau status nonaktif." },
+        { status: 401 }
+      );
+    }
 
-  // Konstanta waktu compare — selalu jalankan bcrypt meski user tidak ada,
-  // untuk mencegah timing attack enumerasi username.
-  const dummyHash = "$2a$10$CwTycUXWue0Thq9StjUM0uJ8VHoQh8a/eq2BGr.0sXXYYYYYYYYY.";
-  const hashToCompare = user?.password || dummyHash;
-  const passwordMatches = await bcrypt.compare(password, hashToCompare);
-
-  const now = new Date();
-  const isLocked = !!user?.lockedUntil && user.lockedUntil > now;
-
-  if (!user || !user.aktif || isLocked || !passwordMatches) {
-    await recordAttempt({ ip, username, success: false });
-    if (user) await incFailedLogin(username);
-
-    // Setelah threshold: lock akun
-    if (user && !isLocked) {
-      const currentFailures = (user.failedLoginCount || 0) + 1;
-      if (currentFailures >= RATE_LIMIT_CONFIG.MAX_ATTEMPTS) {
-        const until = await lockUser(username);
-        await audit({
-          userId: user.id,
-          action: "LOGIN_LOCKED",
-          entityType: "User",
-          entityId: user.id,
-          description: `Akun dikunci sampai ${until.toISOString()}`,
-          ip,
-          ua,
-        });
+    let isValid = false;
+    // Check PIN first, or if password matches PIN (for 6-digit access), or bcrypt password
+    const enteredSecret = String(pin || password || "").trim();
+    if (user.pin && enteredSecret === user.pin) {
+      isValid = true;
+    } else if (user.password) {
+      isValid = await bcrypt.compare(enteredSecret, user.password);
+      if (!isValid && user.password === enteredSecret) {
+        isValid = true;
       }
     }
 
-    await audit({
-      userId: user?.id ?? null,
-      action: "LOGIN_FAIL",
-      description: `Gagal login: ${username}${isLocked ? " (locked)" : ""}`,
-      ip,
-      ua,
+    if (!isValid) {
+      return NextResponse.json(
+        { ok: false, error: "Kata sandi atau PIN tidak sesuai." },
+        { status: 401 }
+      );
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
     });
-    return fail(GENERIC_FAIL, 401);
-  }
 
-  // Success
-  await recordAttempt({ ip, username, success: true });
-  await resetFailedLogin(user.id, ip);
-
-  const token = await signSession({
-    id: user.id,
-    username: user.username,
-    nama: user.nama,
-    role: user.role,
-    unitId: user.unitId,
-    jabatan: user.jabatan,
-  });
-  await setSessionCookie(token);
-
-  await audit({
-    userId: user.id,
-    action: "LOGIN_SUCCESS",
-    entityType: "User",
-    entityId: user.id,
-    description: `Login berhasil`,
-    ip,
-    ua,
-  });
-
-  return ok({
-    user: {
+    const sessionUser: SessionUser = {
       id: user.id,
       username: user.username,
       nama: user.nama,
       role: user.role,
-      jabatan: user.jabatan,
-      mustChangePassword: user.mustChangePassword,
-    },
-  });
+      cabangId: user.cabangId,
+      cabangNama: user.cabang?.nama ?? null,
+      canSeeAll: user.role === Role.ADMIN_PUSAT || user.role === Role.DIREKSI,
+    };
+
+    const token = await signSession(sessionUser);
+    await setSessionCookie(token);
+
+    return NextResponse.json({
+      ok: true,
+      user: sessionUser,
+    });
+  } catch (err: any) {
+    console.error("Login error:", err);
+    return NextResponse.json(
+      { ok: false, error: err?.message || "Terjadi kesalahan pada server saat login." },
+      { status: 500 }
+    );
+  }
 }

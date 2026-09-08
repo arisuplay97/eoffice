@@ -1,65 +1,65 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: ["./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
     extend: {
       colors: {
+        dark: {
+          bg: "#090b0e",
+          card: "#111418",
+          elevated: "#171b21",
+          border: "#222730",
+          hover: "#1c2128",
+          muted: "#64748b",
+          text: "#f1f5f9",
+        },
         brand: {
-          50: "#eef5ff",
-          100: "#d9e8ff",
-          200: "#bcd6ff",
-          300: "#8ebaff",
-          400: "#5993ff",
-          500: "#336fff",
-          600: "#1d4ed8",
-          700: "#1e40af",
-          800: "#1e3a8a",
-          900: "#172554",
-          950: "#0b1535",
+          50: "#f0f9ff",
+          100: "#e0f2fe",
+          200: "#bae6fd",
+          300: "#7dd3fc",
+          400: "#38bdf8",
+          500: "#0ea5e9",
+          600: "#0284c7",
+          700: "#0369a1",
+          800: "#075985",
+          900: "#0c4a6e",
+          950: "#082f49",
         },
-        ink: {
-          50: "#f6f8fb",
-          100: "#eaeef5",
-          200: "#d4dbe7",
-          300: "#aab4c6",
-          400: "#7b88a1",
-          500: "#566279",
-          600: "#3e485c",
-          700: "#2b3345",
-          800: "#1a1f2d",
-          900: "#0c101a",
+        accent: {
+          cyan: "#06b6d4",
+          emerald: "#10b981",
+          amber: "#f59e0b",
+          rose: "#f43f5e",
+          indigo: "#6366f1",
         },
-      },
-      boxShadow: {
-        card: "0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06)",
-        premium:
-          "0 10px 30px -12px rgba(17,24,39,.15), 0 4px 10px -4px rgba(17,24,39,.08)",
       },
       fontFamily: {
         sans: [
           "Inter",
-          "ui-sans-serif",
-          "system-ui",
           "-apple-system",
+          "BlinkMacSystemFont",
           "Segoe UI",
           "Roboto",
           "sans-serif",
         ],
+        mono: [
+          "JetBrains Mono",
+          "Fira Code",
+          "SFMono-Regular",
+          "Menlo",
+          "Monaco",
+          "Consolas",
+          "monospace",
+        ],
       },
-      keyframes: {
-        pulseDot: {
-          "0%,100%": { boxShadow: "0 0 0 0 rgba(29,78,216,.55)" },
-          "50%": { boxShadow: "0 0 0 10px rgba(29,78,216,0)" },
-        },
-        fadeIn: {
-          from: { opacity: "0", transform: "translateY(4px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
-      },
-      animation: {
-        pulseDot: "pulseDot 1.6s ease-out infinite",
-        fadeIn: "fadeIn .25s ease-out both",
+      boxShadow: {
+        subtle: "0 1px 2px 0 rgba(0, 0, 0, 0.04)",
+        card: "0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)",
+        float: "0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)",
+        darkCard: "0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.2)",
       },
     },
   },

@@ -12,334 +12,271 @@ datasource db {
 // =========================================================
 
 enum Role {
-  SUPER_ADMIN
+  ADMIN_PUSAT
+  ADMIN_CABANG
   DIREKSI
-  SEKRETARIAT
-  KEPALA_BAGIAN
-  STAF
-  VIEWER
+  PETUGAS
 }
 
 enum Prioritas {
-  BIASA
-  PENTING
-  SEGERA
-  RAHASIA
+  RENDAH
+  SEDANG
+  TINGGI
+  DARURAT
 }
 
-enum SuratMasukStatus {
-  DITERIMA
-  DIDISPOSISIKAN
-  DIPROSES
-  SELESAI
-  DIARSIPKAN
-}
-
-enum SuratKeluarStatus {
-  DRAFT
-  MENUNGGU_PARAF
-  MENUNGGU_TTD
-  TERKIRIM
-  DIARSIPKAN
-}
-
-enum DisposisiStatus {
+enum StatusAduan {
   BARU
-  DIBACA
-  DIPROSES
-  DITINDAKLANJUTI
+  DIRESPONS
+  PROSES
+  DALAM_PENGERJAAN
+  KENDALA
   SELESAI
-  DITOLAK
+  DITUNDA
+  BATAL
 }
 
-enum InstruksiDisposisi {
-  UNTUK_DIKETAHUI
-  UNTUK_DITINDAKLANJUTI
-  UNTUK_DIPELAJARI
-  UNTUK_DIKOORDINASIKAN
-  UNTUK_DIJAWAB
-  UNTUK_DIARSIPKAN
-  HADIRI_WAKILI
-  SIAPKAN_BAHAN
-  BUAT_LAPORAN
+enum JenisGangguan {
+  AIR_MATI
+  TEKANAN_RENDAH
+  AIR_KERUH
+  PIPA_BOCOR
+  METER_BERMASALAH
+  TAGIHAN
+  SAMBUNGAN_BARU
+  LAINNYA
 }
 
-enum TrackingEvent {
-  SURAT_DITERIMA
-  SURAT_DICATAT
-  DISPOSISI_DIBUAT
-  DISPOSISI_DITERUSKAN
-  DISPOSISI_DIBACA
-  DISPOSISI_DIPROSES
-  BUKTI_DIUPLOAD
-  DISPOSISI_SELESAI
-  SURAT_DIARSIPKAN
-  SURAT_DIBUAT
-  SURAT_DIKIRIM
-  STATUS_BERUBAH
+enum SumberAduan {
+  WHATSAPP
+  DASHBOARD
+  TELEPON
+  LANGSUNG
 }
 
-enum NotificationType {
-  DISPOSISI_BARU
-  DEADLINE_DEKAT
-  DISPOSISI_TERLAMBAT
-  SURAT_BARU
-  STATUS_BERUBAH
-  DISPOSISI_SELESAI
+enum TipeDokumentasi {
+  FOTO_RESPONS
+  FOTO_SEBELUM
+  FOTO_PROSES
+  FOTO_SELESAI
 }
 
 // =========================================================
 // MODELS
 // =========================================================
 
-model User {
-  id                String    @id @default(cuid())
-  username          String    @unique
-  password          String
-  nama              String
-  email             String?   @unique
-  jabatan           String?
-  nip               String?
-  role              Role      @default(STAF)
-  aktif             Boolean   @default(true)
-  avatarUrl         String?
-  unitId            String?
-  unit              Unit?     @relation(fields: [unitId], references: [id])
-  // Security
-  failedLoginCount  Int       @default(0)
-  lockedUntil       DateTime?
-  lastLoginAt       DateTime?
-  lastLoginIp       String?
-  mustChangePassword Boolean  @default(false)
-  // Audit
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  suratMasukInput       SuratMasuk[]   @relation("SuratMasukCreator")
-  suratKeluarInput      SuratKeluar[]  @relation("SuratKeluarCreator")
-  disposisiDibuat       Disposisi[]    @relation("DisposisiFrom")
-  disposisiDiterima     Disposisi[]    @relation("DisposisiTo")
-  trackingLogs          TrackingLog[]
-  notifications         Notification[]
-  auditLogs             AuditLog[]
-
-  @@index([unitId])
-  @@index([role])
-}
-
-model Unit {
+model Cabang {
   id        String   @id @default(cuid())
   kode      String   @unique
-  nama      String
-  tipe      String?  // DIREKSI / SEKRETARIAT / BIDANG / CABANG
-  deskripsi String?
+  nama      String   @unique
+  wilayah   String
+  alamat    String?
+  kontak    String?
   aktif     Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users          User[]
-  suratMasuk     SuratMasuk[]   @relation("SuratMasukUnitTujuan")
-  suratKeluar    SuratKeluar[]  @relation("SuratKeluarUnitPembuat")
-  disposisiUnit  Disposisi[]    @relation("DisposisiUnitTujuan")
+  users       User[]
+  petugas     Petugas[]
+  aduan       Aduan[]
+  pengumuman  PengumumanLayanan[]
+
+  @@index([kode])
 }
 
-model SuratMasuk {
-  id              String           @id @default(cuid())
-  nomorAgenda     String           @unique
-  nomorSurat      String
-  tanggalSurat    DateTime
-  tanggalDiterima DateTime         @default(now())
-  asalSurat       String
-  perihal         String
-  ringkasan       String?
-  prioritas       Prioritas        @default(BIASA)
-  status          SuratMasukStatus @default(DITERIMA)
+model User {
+  id          String    @id @default(cuid())
+  username    String    @unique
+  password    String
+  nama        String
+  email       String?   @unique
+  role        Role      @default(ADMIN_CABANG)
+  cabangId    String?
+  cabang      Cabang?   @relation(fields: [cabangId], references: [id])
+  aktif       Boolean   @default(true)
+  pin         String?
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  statusLogs  StatusLog[]
+
+  @@index([cabangId])
+  @@index([role])
+}
+
+model Petugas {
+  id              String   @id @default(cuid())
+  nama            String
+  noHp            String
+  role            String   @default("Teknisi")
+  cabangId        String
+  cabang          Cabang   @relation(fields: [cabangId], references: [id])
+  aktif           Boolean  @default(true)
+  notifAduanBaru  Boolean  @default(true)
+  notifDarurat    Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  penugasan       PenugasanAduan[]
+
+  @@index([cabangId])
+  @@index([noHp])
+}
+
+model Aduan {
+  id              String         @id
+  cabangId        String
+  cabang          Cabang         @relation(fields: [cabangId], references: [id])
+  wilayah         String
+  desa            String?
+  noPelanggan     String
+  namaPelanggan   String
+  noHp            String
+  jenisGangguan   JenisGangguan  @default(LAINNYA)
+  prioritas       Prioritas      @default(SEDANG)
+  status          StatusAduan    @default(BARU)
+  sumberAduan     SumberAduan    @default(WHATSAPP)
+  unit            String         @default("Cabang")
+  keterangan      String?
   catatan         String?
-  kodeVerifikasi  String           @unique
-  signatureHash   String
-  unitTujuanId    String?
-  unitTujuan      Unit?            @relation("SuratMasukUnitTujuan", fields: [unitTujuanId], references: [id])
-  createdById     String
-  createdBy       User             @relation("SuratMasukCreator", fields: [createdById], references: [id])
-  deletedAt       DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  waktuMasuk      DateTime       @default(now())
+  waktuRespons    DateTime?
+  waktuSelesai    DateTime?
+  slaJam          Int            @default(24)
+  latitude        Float?
+  longitude       Float?
+  linkMaps        String?
+  lokasiDetail    String?
+  idAduanLama     String?
+  alasanAlih      String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
-  attachments  Attachment[]
-  disposisi    Disposisi[]
-  trackingLogs TrackingLog[]
+  statusLogs      StatusLog[]
+  dokumentasi     DokumentasiAduan[]
+  penugasan       PenugasanAduan[]
 
-  @@index([unitTujuanId])
+  @@index([cabangId])
   @@index([status])
-  @@index([tanggalSurat])
-  @@index([deletedAt])
+  @@index([waktuMasuk])
+  @@index([noPelanggan])
+  @@index([noHp])
 }
 
-model SuratKeluar {
-  id             String            @id @default(cuid())
-  nomorSurat     String            @unique
-  tujuan         String
-  perihal        String
-  ringkasan      String?
-  tanggalSurat   DateTime
-  penandatangan  String
-  status         SuratKeluarStatus @default(DRAFT)
-  catatan        String?
-  kodeVerifikasi String            @unique
-  signatureHash  String
-  unitPembuatId  String?
-  unitPembuat    Unit?             @relation("SuratKeluarUnitPembuat", fields: [unitPembuatId], references: [id])
-  createdById    String
-  createdBy      User              @relation("SuratKeluarCreator", fields: [createdById], references: [id])
-  deletedAt      DateTime?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+model StatusLog {
+  id               String      @id @default(cuid())
+  aduanId          String
+  aduan            Aduan       @relation(fields: [aduanId], references: [id], onDelete: Cascade)
+  statusSebelumnya StatusAduan?
+  statusBaru       StatusAduan
+  waktu            DateTime    @default(now())
+  userId           String?
+  user             User?       @relation(fields: [userId], references: [id])
+  actorNama        String
+  keterangan       String?
 
-  attachments  Attachment[]
-  trackingLogs TrackingLog[]
+  @@index([aduanId])
+  @@index([waktu])
+}
 
-  @@index([unitPembuatId])
+model DokumentasiAduan {
+  id          String           @id @default(cuid())
+  aduanId     String
+  aduan       Aduan            @relation(fields: [aduanId], references: [id], onDelete: Cascade)
+  tipeFoto    TipeDokumentasi  @default(FOTO_PROSES)
+  fotoUrl     String
+  caption     String?
+  uploadedBy  String
+  isValid     Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+
+  @@index([aduanId])
+}
+
+model PenugasanAduan {
+  id         String   @id @default(cuid())
+  aduanId    String
+  aduan      Aduan    @relation(fields: [aduanId], references: [id], onDelete: Cascade)
+  petugasId  String
+  petugas    Petugas  @relation(fields: [petugasId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+  assignedBy String
+
+  @@index([aduanId])
+  @@index([petugasId])
+}
+
+model PengumumanLayanan {
+  id                String    @id @default(cuid())
+  judul             String
+  isi               String
+  status            String    @default("AKTIF")
+  mulai             DateTime
+  selesai           DateTime
+  cabangId          String?
+  cabang            Cabang?   @relation(fields: [cabangId], references: [id])
+  wilayahTerdampak  String?
+  jenisDicegah      String?
+  cegahAduan        Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
   @@index([status])
-  @@index([deletedAt])
+  @@index([mulai, selesai])
 }
 
-model Disposisi {
-  id             String             @id @default(cuid())
-  suratMasukId   String
-  suratMasuk     SuratMasuk         @relation(fields: [suratMasukId], references: [id], onDelete: Cascade)
-  parentId       String?
-  parent         Disposisi?         @relation("DisposisiChain", fields: [parentId], references: [id])
-  children       Disposisi[]        @relation("DisposisiChain")
-  fromUserId     String
-  fromUser       User               @relation("DisposisiFrom", fields: [fromUserId], references: [id])
-  toUserId       String?
-  toUser         User?              @relation("DisposisiTo", fields: [toUserId], references: [id])
-  toUnitId       String?
-  toUnit         Unit?              @relation("DisposisiUnitTujuan", fields: [toUnitId], references: [id])
-  instruksi      InstruksiDisposisi
-  catatan        String?
-  deadline       DateTime?
-  status         DisposisiStatus    @default(BARU)
-  buktiCatatan   String?
-  selesaiPada    DateTime?
-  dibacaPada     DateTime?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+model ChatAdminQueue {
+  id                   String        @id @default(cuid())
+  phone                String        @unique
+  nama                 String
+  aduanId              String?
+  status               String        @default("OPEN")
+  context              String?
+  lastCustomerMessage  String?
+  lastCustomerAt       DateTime?
+  lastAdminMessage     String?
+  lastAdminAt          DateTime?
+  windowExpiresAt      DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
 
-  attachments  Attachment[]
-  trackingLogs TrackingLog[]
+  messages             CrmMessage[]
 
-  @@index([toUserId])
-  @@index([toUnitId])
-  @@index([fromUserId])
-  @@index([suratMasukId])
   @@index([status])
+  @@index([updatedAt])
 }
 
-model TrackingLog {
-  id            String        @id @default(cuid())
-  event         TrackingEvent
-  judul         String
-  keterangan    String?
-  petugasId     String?
-  petugas       User?         @relation(fields: [petugasId], references: [id])
-  suratMasukId  String?
-  suratMasuk    SuratMasuk?   @relation(fields: [suratMasukId], references: [id], onDelete: Cascade)
-  suratKeluarId String?
-  suratKeluar   SuratKeluar?  @relation(fields: [suratKeluarId], references: [id], onDelete: Cascade)
-  disposisiId   String?
-  disposisi     Disposisi?    @relation(fields: [disposisiId], references: [id], onDelete: Cascade)
-  createdAt     DateTime      @default(now())
+model CrmMessage {
+  id         String         @id @default(cuid())
+  queueId    String
+  queue      ChatAdminQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
+  sender     String
+  message    String
+  mediaUrl   String?
+  createdAt  DateTime       @default(now())
 
-  @@index([suratMasukId])
-  @@index([suratKeluarId])
-  @@index([disposisiId])
+  @@index([queueId])
+  @@index([createdAt])
 }
 
-model Attachment {
-  id            String       @id @default(cuid())
-  nama          String       // nama file asli (display only)
-  storageKey    String       // random filename / Blob pathname
-  url           String       // URL akses (Blob URL atau /uploads/xxx untuk dev)
-  mime          String
-  ukuran        Int
-  jenis         String?      // "pokok" | "bukti" | "draft" | "final"
-  // Security
-  private       Boolean      @default(true)
-  checksum      String?      // SHA-256 hex
-  uploadedById  String?
-  suratMasukId  String?
-  suratMasuk    SuratMasuk?  @relation(fields: [suratMasukId], references: [id], onDelete: Cascade)
-  suratKeluarId String?
-  suratKeluar   SuratKeluar? @relation(fields: [suratKeluarId], references: [id], onDelete: Cascade)
-  disposisiId   String?
-  disposisi     Disposisi?   @relation(fields: [disposisiId], references: [id], onDelete: Cascade)
-  deletedAt     DateTime?
-  createdAt     DateTime     @default(now())
-
-  @@index([suratMasukId])
-  @@index([suratKeluarId])
-  @@index([disposisiId])
-}
-
-model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tipe      NotificationType
-  judul     String
-  pesan     String
-  link      String?
-  dibaca    Boolean          @default(false)
-  createdAt DateTime         @default(now())
-
-  @@index([userId, dibaca])
-}
-
-model Setting {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  value     String
-  updatedAt DateTime @updatedAt
-}
-
-model Counter {
-  id    String @id @default(cuid())
-  key   String @unique
-  value Int    @default(0)
-}
-
-// =========================================================
-// AUDIT LOG
-// =========================================================
-model AuditLog {
+model WhatsAppLog {
   id          String   @id @default(cuid())
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action      String   // LOGIN_SUCCESS, LOGIN_FAIL, LOGOUT, CREATE_SURAT_MASUK, ...
-  entityType  String?  // "SuratMasuk" | "Disposisi" | "User" | ...
-  entityId    String?
-  ipAddress   String?
-  userAgent   String?
-  description String?
-  metadata    String?  // JSON stringified (small)
+  phone       String
+  direction   String
+  messageType String
+  content     String
+  status      String   @default("SENT")
   createdAt   DateTime @default(now())
 
-  @@index([userId])
-  @@index([action])
-  @@index([entityType, entityId])
+  @@index([phone])
   @@index([createdAt])
 }
 
-// Rate limiter store (login throttling per IP+username)
-model LoginAttempt {
-  id         String   @id @default(cuid())
-  key        String   // hash(ipAddress + username)
-  ipAddress  String?
-  username   String?
-  success    Boolean
-  createdAt  DateTime @default(now())
-
-  @@index([key, createdAt])
-  @@index([createdAt])
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
 }

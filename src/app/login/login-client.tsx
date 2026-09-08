@@ -1,236 +1,187 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { useToast } from "@/components/ui/Toast";
-import { IconDroplet, IconShield } from "@/components/ui/Icons";
-
-/**
- * Sanitasi target redirect untuk mencegah open redirect attack.
- * Hanya terima path internal yang dimulai dengan "/" (bukan "//" atau "/\\"),
- * tidak boleh mengandung skema, dan bukan path login/verify landing.
- */
-function safeNextPath(raw: string | null): string {
-  const fallback = "/dashboard";
-  if (!raw) return fallback;
-  try {
-    const decoded = decodeURIComponent(raw);
-    if (!decoded.startsWith("/")) return fallback;
-    if (decoded.startsWith("//") || decoded.startsWith("/\\")) return fallback;
-    if (/^[a-z][a-z0-9+.-]*:/i.test(decoded)) return fallback; // scheme
-    if (decoded.length > 500) return fallback;
-    if (decoded.startsWith("/login")) return fallback;
-    return decoded;
-  } catch {
-    return fallback;
-  }
-}
+import { Building2, Lock, KeyRound, AlertCircle } from "lucide-react";
+import { CABANG_LIST } from "@/lib/constants";
 
 export default function LoginClient() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = safeNextPath(params.get("next"));
-  const toast = useToast();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showPass, setShowPass] = useState(false);
+  const next = params.get("next") || "/dashboard";
 
-  const submit = async (e: React.FormEvent) => {
+  const [selectedCabang, setSelectedCabang] = useState("admin");
+  const [pinOrPass, setPinOrPass] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password) {
-      toast.error("Username dan password wajib diisi");
-      return;
-    }
+    setError(null);
     setLoading(true);
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({
+          username: selectedCabang,
+          pin: pinOrPass.trim(),
+          password: pinOrPass.trim(),
+        }),
       });
+
       const data = await res.json();
-      if (!data.ok) {
-        toast.error(data.error || "Gagal login");
-        setLoading(false);
-        return;
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Autentikasi gagal. Periksa kembali PIN atau password Anda.");
       }
-      toast.success(`Selamat datang, ${data.data.user.nama}`);
+
       router.push(next);
       router.refresh();
-    } catch (e: any) {
-      toast.error(e?.message || "Terjadi kesalahan");
+    } catch (err: any) {
+      setError(err.message || "Terjadi kendala saat menghubungkan ke server.");
+    } finally {
       setLoading(false);
     }
   };
 
+  const handleQuickSelect = (username: string, pin: string) => {
+    setSelectedCabang(username);
+    setPinOrPass(pin);
+  };
+
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-      {/* Left: brand panel */}
-      <div className="relative overflow-hidden hidden lg:flex flex-col justify-between p-12 bg-brand-900 text-white">
-        <div
-          className="absolute inset-0 opacity-30 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(800px 400px at 20% 20%, rgba(255,255,255,.12), transparent 60%), radial-gradient(600px 300px at 80% 80%, rgba(91,157,255,.25), transparent 60%)",
-          }}
-        />
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.08]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,.25) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.25) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-        <div className="relative flex items-center gap-3">
-          <div className="h-12 w-12 rounded-2xl bg-white/10 ring-1 ring-white/20 flex items-center justify-center">
-            <IconDroplet className="h-6 w-6 text-brand-100" />
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#133ca0] px-4 py-12 text-slate-100 antialiased selection:bg-blue-300 selection:text-blue-900">
+      {/* Main Container */}
+      <div className="relative z-10 w-full max-w-sm sm:max-w-md">
+        {/* Top Logo and Titles (Matching Reference Image 5) */}
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-2.5 shadow-xl shadow-blue-950/30 ring-1 ring-white/40">
+            <img
+              src="/logo.png"
+              alt="Logo PERUMDAM Tirta Ardhia Rinjani"
+              className="h-full w-auto object-contain"
+            />
           </div>
-          <div className="leading-tight">
-            <p className="text-xs tracking-[0.22em] text-brand-200 uppercase">
-              PERUMDAM
-            </p>
-            <p className="text-lg font-semibold">Tirta Ardhia Rinjani</p>
-          </div>
+
+          <h1 className="text-2xl font-bold tracking-tight text-white">
+            SIAGA TIARA
+          </h1>
+          <p className="mt-1 text-xs text-blue-100/90 font-medium">
+            Perumdam Tirta Ardhia Rinjani Kabupaten Lombok Tengah
+          </p>
         </div>
 
-        <div className="relative z-10 space-y-6">
-          <div>
-            <h1 className="text-4xl font-semibold tracking-tight leading-[1.1]">
-              E-Office <span className="text-brand-200">TIARA</span>
-            </h1>
-            <p className="mt-3 text-brand-100/90 max-w-md leading-relaxed">
-              Sistem Administrasi Persuratan, Disposisi, Tracking Dokumen, dan
-              Arsip Digital untuk PERUMDAM Tirta Ardhia Rinjani, Kabupaten
-              Lombok Tengah.
+        {/* Clean White Card (Matching Reference Image 5) */}
+        <div className="rounded-2xl border border-white/20 bg-white p-6 sm:p-7 shadow-2xl text-slate-900">
+          <div className="mb-5">
+            <h2 className="text-base font-bold text-slate-900">
+              Masuk ke Sistem
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Masukkan kredensial akun Anda
             </p>
           </div>
 
-          <ul className="space-y-2.5 text-sm text-brand-100/90">
-            {[
-              "Nomor agenda & nomor surat otomatis",
-              "Disposisi berjenjang dengan timeline",
-              "Tracking dokumen seperti resi pengiriman",
-              "QR verifikasi keabsahan dokumen",
-              "Arsip digital & export laporan",
-            ].map((t) => (
-              <li key={t} className="flex items-start gap-2.5">
-                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brand-300" />
-                <span>{t}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="relative text-xs text-brand-200/80">
-          &copy; {new Date().getFullYear()} PERUMDAM Tirta Ardhia Rinjani ·
-          Lombok Tengah
-        </div>
-      </div>
-
-      {/* Right: form */}
-      <div className="flex items-center justify-center p-6 sm:p-10 bg-ink-50">
-        <div className="w-full max-w-md">
-          <div className="lg:hidden mb-8 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-brand-700 text-white flex items-center justify-center">
-              <IconDroplet className="h-5 w-5" />
+          {error && (
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-700">
+              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+              <span>{error}</span>
             </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            {/* Account Selector (No manual username typing as requested!) */}
             <div>
-              <p className="text-sm font-semibold text-ink-900">E-Office TIARA</p>
-              <p className="text-xs text-ink-500">
-                PERUMDAM Tirta Ardhia Rinjani
-              </p>
+              <label className="mb-1.5 block font-semibold text-slate-700">
+                Pilih Akun Petugas / Cabang
+              </label>
+              <div className="relative">
+                <Building2 className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <select
+                  value={selectedCabang}
+                  onChange={(e) => setSelectedCabang(e.target.value)}
+                  className="w-full appearance-none rounded-lg border border-slate-200 bg-slate-50/50 pl-9 pr-8 py-2.5 text-xs font-medium text-slate-800 transition hover:bg-slate-50 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+                >
+                  <option value="admin">Admin Pusat (Semua 12 Cabang)</option>
+                  <option value="direksi">Direksi Operasional</option>
+                  <optgroup label="Cabang Pelayanan (12 Unit)">
+                    {CABANG_LIST.map((c) => (
+                      <option key={c.kode} value={`cabang_${c.kode.toLowerCase()}`}>
+                        {c.nama.startsWith("Cabang ") ? c.nama : `Cabang ${c.nama}`} ({c.wilayah})
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
             </div>
-          </div>
 
-          <div className="bg-white rounded-2xl shadow-premium ring-1 ring-ink-200 p-8">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-ink-900">
-                Masuk ke akun Anda
-              </h2>
-              <p className="text-sm text-ink-500 mt-1">
-                Silakan masuk menggunakan kredensial perusahaan.
-              </p>
-            </div>
-
-            <form onSubmit={submit} className="space-y-4">
-              <div>
-                <label className="label" htmlFor="username">
-                  Username
-                </label>
+            {/* Password / PIN */}
+            <div>
+              <label className="mb-1.5 block font-semibold text-slate-700">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                 <input
-                  id="username"
-                  autoFocus
-                  className="input"
-                  placeholder="mis. admin"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoComplete="username"
+                  type="password"
+                  value={pinOrPass}
+                  onChange={(e) => setPinOrPass(e.target.value)}
+                  placeholder="Masukkan password atau PIN"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50/50 pl-9 pr-3 py-2.5 font-mono text-xs text-slate-800 placeholder:text-slate-400 transition hover:bg-slate-50 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+                  required
                 />
               </div>
-              <div>
-                <label className="label" htmlFor="password">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showPass ? "text" : "password"}
-                    className="input pr-20"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass((v) => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-brand-700 hover:text-brand-800 px-2 py-1"
-                  >
-                    {showPass ? "Sembunyikan" : "Lihat"}
-                  </button>
-                </div>
-              </div>
+            </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary w-full py-2.5 text-[15px]"
-              >
-                {loading ? "Memproses..." : "Masuk"}
-              </button>
-            </form>
-
-            {process.env.NODE_ENV !== "production" && (
-              <div className="mt-6 p-3.5 rounded-lg bg-brand-50/50 ring-1 ring-brand-200 text-xs text-brand-900 flex gap-2.5">
-                <IconShield className="h-4 w-4 shrink-0 mt-0.5 text-brand-700" />
-                <div className="leading-relaxed">
-                  <p className="font-semibold">Akun default (development only)</p>
-                  <p className="mt-0.5">
-                    <span className="font-mono bg-white px-1.5 py-0.5 rounded ring-1 ring-brand-200">
-                      admin
-                    </span>{" "}
-                    /{" "}
-                    <span className="font-mono bg-white px-1.5 py-0.5 rounded ring-1 ring-brand-200">
-                      admin123
-                    </span>
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <p className="text-center text-xs text-ink-500 mt-6">
-            Butuh bantuan?{" "}
-            <Link
-              href="/verify"
-              className="text-brand-700 hover:underline font-medium"
+            {/* Submit Button (Matching Image 5) */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 w-full rounded-lg bg-[#0d1527] hover:bg-[#1e293b] text-white py-2.5 text-xs font-semibold shadow-sm transition active:scale-[0.99] disabled:opacity-50"
             >
-              Verifikasi Dokumen Publik
-            </Link>
-          </p>
+              {loading ? "Memvalidasi Akses..." : "Masuk"}
+            </button>
+          </form>
+
+          {/* Quick Demo Info Box (Matching Image 5) */}
+          <div className="mt-5 rounded-lg border border-slate-100 bg-slate-50 p-3 text-[11px] text-slate-600">
+            <div className="font-semibold text-slate-700 mb-1 flex items-center justify-between">
+              <span>Akun Demo:</span>
+              <span className="text-[10px] text-slate-400 font-mono">PIN: 123456</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              <button
+                type="button"
+                onClick={() => handleQuickSelect("admin", "123456")}
+                className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-700 hover:border-blue-500 hover:text-blue-700 transition"
+              >
+                <KeyRound className="h-2.5 w-2.5 text-slate-400" />
+                <span>Admin Pusat</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickSelect("cabang_pry", "123456")}
+                className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-700 hover:border-blue-500 hover:text-blue-700 transition"
+              >
+                <KeyRound className="h-2.5 w-2.5 text-slate-400" />
+                <span>Cabang Praya</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickSelect("direksi", "123456")}
+                className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-700 hover:border-blue-500 hover:text-blue-700 transition"
+              >
+                <KeyRound className="h-2.5 w-2.5 text-slate-400" />
+                <span>Direksi</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Note (Matching Image 5) */}
+        <div className="mt-8 text-center text-xs text-blue-100/70 font-medium">
+          &copy; 2026 Tirta Ardhia Rinjani
         </div>
       </div>
     </div>
