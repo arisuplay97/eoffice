@@ -88,4 +88,9 @@ export const ROLE_LABELS: Record<Role, string> = {
   [Role.ADMIN_CABANG]: "Staf Cabang",
   [Role.DIREKSI]: "Direksi",
   [Role.PETUGAS]: "Petugas Lapangan",
+  [Role.SUPER_ADMIN]: "Super Admin",
+  [Role.SEKRETARIAT]: "Sekretariat",
+  [Role.KEPALA_BAGIAN]: "Kepala Bagian",
+  [Role.STAF]: "Staf",
+  [Role.VIEWER]: "Viewer",
 };

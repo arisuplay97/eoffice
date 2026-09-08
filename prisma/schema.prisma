@@ -16,6 +16,11 @@ enum Role {
   ADMIN_CABANG
   DIREKSI
   PETUGAS
+  SUPER_ADMIN
+  SEKRETARIAT
+  KEPALA_BAGIAN
+  STAF
+  VIEWER
 }
 
 enum Prioritas {

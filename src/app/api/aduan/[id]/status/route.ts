@@ -93,7 +93,7 @@ export async function PATCH(
           statusBaru: newStatus,
           waktu: now,
           userId: user.id,
-          actorNama: `${user.nama} (${user.role === "ADMIN_PUSAT" ? "Admin Pusat" : aduan.cabang.nama})`,
+          actorNama: `${user.nama} (${user.role === "ADMIN_PUSAT" || user.role === "SUPER_ADMIN" ? "Admin Pusat" : aduan.cabang.nama})`,
           keterangan: keteranganAksi || catatan || `Status diubah dari ${prevStatus} menjadi ${newStatus}`,
         },
       });

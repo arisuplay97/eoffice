@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
       role: user.role,
       cabangId: user.cabangId ?? null,
       cabangNama: user.cabang?.nama ?? null,
-      canSeeAll: user.role === Role.ADMIN_PUSAT || user.role === Role.DIREKSI,
+      canSeeAll: user.role === Role.ADMIN_PUSAT || user.role === Role.DIREKSI || user.role === Role.SUPER_ADMIN,
     };
 
     const token = await signSession(sessionUser);

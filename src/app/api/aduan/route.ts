@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
         statusBaru: StatusAduan.BARU,
         waktu: new Date(),
         userId: user.id,
-        actorNama: `${user.nama} (${user.role === "ADMIN_PUSAT" ? "Admin Pusat" : cabang.nama})`,
+        actorNama: `${user.nama} (${user.role === "ADMIN_PUSAT" || user.role === "SUPER_ADMIN" ? "Admin Pusat" : cabang.nama})`,
         keterangan: `Aduan manual dibuat melalui dashboard web (${aduan.sumberAduan})`,
       },
     });

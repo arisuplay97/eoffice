@@ -75,13 +75,13 @@ export async function requireSession(): Promise<SessionUser> {
 export const SESSION_COOKIE = COOKIE_NAME;
 
 export function canManageSettings(role: Role): boolean {
-  return role === Role.ADMIN_PUSAT;
+  return role === Role.ADMIN_PUSAT || role === Role.SUPER_ADMIN;
 }
 
 export function canReassignBranch(role: Role): boolean {
-  return role === Role.ADMIN_PUSAT;
+  return role === Role.ADMIN_PUSAT || role === Role.SUPER_ADMIN;
 }
 
 export function canAccessCrmInbox(role: Role): boolean {
-  return role === Role.ADMIN_PUSAT || role === Role.DIREKSI;
+  return role === Role.ADMIN_PUSAT || role === Role.DIREKSI || role === Role.SUPER_ADMIN;
 }
