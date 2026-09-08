@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, Lock, AlertCircle } from "lucide-react";
+import { Building2, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { CABANG_LIST } from "@/lib/constants";
 
 export default function LoginClient() {
@@ -12,6 +12,7 @@ export default function LoginClient() {
 
   const [selectedCabang, setSelectedCabang] = useState("admin");
   const [pinOrPass, setPinOrPass] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -123,13 +124,22 @@ export default function LoginClient() {
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                 <input
-                  type="password"
+                  type={showPass ? "text" : "password"}
                   value={pinOrPass}
                   onChange={(e) => setPinOrPass(e.target.value)}
-                  placeholder="Masukkan password atau PIN"
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50/50 pl-9 pr-3 py-2.5 font-mono text-xs text-slate-800 placeholder:text-slate-400 transition hover:bg-slate-50 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+                  placeholder="Masukkan password atau PIN (123456)"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50/50 pl-9 pr-10 py-2.5 font-mono text-xs text-slate-800 placeholder:text-slate-400 transition hover:bg-slate-50 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition"
+                  title={showPass ? "Sembunyikan" : "Tampilkan"}
+                  tabIndex={-1}
+                >
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
 
