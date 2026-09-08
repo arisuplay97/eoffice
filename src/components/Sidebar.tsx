@@ -93,7 +93,7 @@ export default function Sidebar({
                 SIAGA TIARA
               </div>
               <div className="text-xs text-neutral-500 dark:text-dark-muted truncate leading-tight mt-0.5 font-medium">
-                {canSeeAll ? "PERUMDAM Lombok Tengah" : user?.cabangNama || "Cabang Pelayanan"}
+                {canSeeAll ? "PDAM TIARA LOTENG" : user?.cabangNama || "Cabang Pelayanan"}
               </div>
             </div>
           </div>
@@ -262,7 +262,7 @@ export default function Sidebar({
 
         {/* Subtle Footer info */}
         <div className="border-t border-neutral-200/80 dark:border-dark-border p-3.5 text-center text-xs text-neutral-400 font-mono">
-          SIAGA TIARA V11.10 · Lombok Tengah
+          SIAGA TIARA V2.0
         </div>
       </aside>
     </>

@@ -76,7 +76,7 @@ export default function Header({
 
         <div className="flex items-center gap-2">
           <span className="text-base font-bold tracking-tight text-neutral-900 dark:text-white">
-            Dashboard
+            Dashboard Monitoring Gangguan
           </span>
         </div>
       </div>

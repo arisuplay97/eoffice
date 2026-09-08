@@ -63,10 +63,10 @@ export default function LoginClient() {
             />
           </div>
 
-          <h1 className="text-2xl font-bold tracking-tight text-white">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
             SIAGA TIARA
           </h1>
-          <p className="mt-1 text-xs text-slate-400 font-medium">
+          <p className="mt-2 text-sm sm:text-base text-slate-300 font-medium leading-relaxed">
             Perumdam Tirta Ardhia Rinjani Kabupaten Lombok Tengah
           </p>
         </div>
