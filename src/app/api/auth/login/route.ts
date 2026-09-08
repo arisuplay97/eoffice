@@ -85,17 +85,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
+    // Self-heal table schema if running against an unmigrated database instance
+    try {
+      await prisma.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "cabangId" TEXT;`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "pin" TEXT;`);
+    } catch {
+      // safe ignore if no permission or already up to date
+    }
+
+    // Safely update lastLoginAt without failing the login transaction
+    try {
+      await prisma.$executeRaw`
+        UPDATE "User" 
+        SET "lastLoginAt" = NOW() 
+        WHERE "id" = ${user.id}
+      `;
+    } catch {
+      // Non-critical audit field, never block user login
+    }
 
     const sessionUser: SessionUser = {
       id: user.id,
       username: user.username,
       nama: user.nama,
       role: user.role,
-      cabangId: user.cabangId,
+      cabangId: user.cabangId ?? null,
       cabangNama: user.cabang?.nama ?? null,
       canSeeAll: user.role === Role.ADMIN_PUSAT || user.role === Role.DIREKSI,
     };
