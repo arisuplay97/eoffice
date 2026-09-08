@@ -16,12 +16,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findFirst({
-      where: {
-        username: { equals: String(username).trim(), mode: "insensitive" },
-      },
-      include: { cabang: true },
-    });
+    let user: any = null;
+    try {
+      user = await prisma.user.findFirst({
+        where: {
+          username: { equals: String(username).trim(), mode: "insensitive" },
+        },
+        include: { cabang: true },
+      });
+    } catch (primaryErr: any) {
+      console.warn("Primary user findFirst failed, trying safe fallback:", primaryErr?.message);
+      try {
+        const rawUsers: any[] = await prisma.$queryRaw`
+          SELECT * FROM "User" 
+          WHERE LOWER("username") = LOWER(${String(username).trim()})
+          LIMIT 1
+        `;
+        if (rawUsers && rawUsers.length > 0) {
+          user = rawUsers[0];
+          if (user.cabangId) {
+            try {
+              user.cabang = await prisma.cabang.findUnique({
+                where: { id: user.cabangId },
+              });
+            } catch {
+              user.cabang = null;
+            }
+          } else {
+            user.cabang = null;
+          }
+        }
+      } catch (rawErr: any) {
+        console.error("Safe fallback user lookup also failed:", rawErr?.message);
+        throw primaryErr;
+      }
+    }
 
     if (!user || !user.aktif) {
       return NextResponse.json(

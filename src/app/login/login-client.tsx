@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, Lock, KeyRound, AlertCircle } from "lucide-react";
+import { Building2, Lock, AlertCircle } from "lucide-react";
 import { CABANG_LIST } from "@/lib/constants";
 
 export default function LoginClient() {
@@ -45,18 +45,17 @@ export default function LoginClient() {
     }
   };
 
-  const handleQuickSelect = (username: string, pin: string) => {
-    setSelectedCabang(username);
-    setPinOrPass(pin);
-  };
-
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-[#133ca0] px-4 py-12 text-slate-100 antialiased selection:bg-blue-300 selection:text-blue-900">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#090b0e] px-4 py-12 text-slate-100 antialiased selection:bg-sky-500/30 selection:text-sky-200">
+      {/* Subtle Background Radial Glow (Restored from previous design) */}
+      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[550px] w-[750px] rounded-full bg-gradient-to-tr from-sky-600/10 via-cyan-500/10 to-indigo-600/5 blur-[120px]" />
+      <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 h-64 w-full max-w-4xl bg-gradient-to-t from-sky-950/20 to-transparent blur-3xl" />
+
       {/* Main Container */}
       <div className="relative z-10 w-full max-w-sm sm:max-w-md">
-        {/* Top Logo and Titles (Matching Reference Image 5) */}
+        {/* Top Logo and Titles */}
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-2.5 shadow-xl shadow-blue-950/30 ring-1 ring-white/40">
+          <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-2.5 shadow-2xl shadow-black/50 ring-1 ring-white/20">
             <img
               src="/logo.png"
               alt="Logo PERUMDAM Tirta Ardhia Rinjani"
@@ -67,13 +66,13 @@ export default function LoginClient() {
           <h1 className="text-2xl font-bold tracking-tight text-white">
             SIAGA TIARA
           </h1>
-          <p className="mt-1 text-xs text-blue-100/90 font-medium">
+          <p className="mt-1 text-xs text-slate-400 font-medium">
             Perumdam Tirta Ardhia Rinjani Kabupaten Lombok Tengah
           </p>
         </div>
 
-        {/* Clean White Card (Matching Reference Image 5) */}
-        <div className="rounded-2xl border border-white/20 bg-white p-6 sm:p-7 shadow-2xl text-slate-900">
+        {/* Clean Login Card */}
+        <div className="rounded-2xl border border-white/20 bg-white p-6 sm:p-7 shadow-2xl shadow-black/60 text-slate-900">
           <div className="mb-5">
             <h2 className="text-base font-bold text-slate-900">
               Masuk ke Sistem
@@ -91,7 +90,7 @@ export default function LoginClient() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-            {/* Account Selector (No manual username typing as requested!) */}
+            {/* Account Selector */}
             <div>
               <label className="mb-1.5 block font-semibold text-slate-700">
                 Pilih Akun Petugas / Cabang
@@ -134,7 +133,7 @@ export default function LoginClient() {
               </div>
             </div>
 
-            {/* Submit Button (Matching Image 5) */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -143,45 +142,11 @@ export default function LoginClient() {
               {loading ? "Memvalidasi Akses..." : "Masuk"}
             </button>
           </form>
-
-          {/* Quick Demo Info Box (Matching Image 5) */}
-          <div className="mt-5 rounded-lg border border-slate-100 bg-slate-50 p-3 text-[11px] text-slate-600">
-            <div className="font-semibold text-slate-700 mb-1 flex items-center justify-between">
-              <span>Akun Demo:</span>
-              <span className="text-[10px] text-slate-400 font-mono">PIN: 123456</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5 mt-1.5">
-              <button
-                type="button"
-                onClick={() => handleQuickSelect("admin", "123456")}
-                className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-700 hover:border-blue-500 hover:text-blue-700 transition"
-              >
-                <KeyRound className="h-2.5 w-2.5 text-slate-400" />
-                <span>Admin Pusat</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickSelect("cabang_pry", "123456")}
-                className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-700 hover:border-blue-500 hover:text-blue-700 transition"
-              >
-                <KeyRound className="h-2.5 w-2.5 text-slate-400" />
-                <span>Cabang Praya</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickSelect("direksi", "123456")}
-                className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-700 hover:border-blue-500 hover:text-blue-700 transition"
-              >
-                <KeyRound className="h-2.5 w-2.5 text-slate-400" />
-                <span>Direksi</span>
-              </button>
-            </div>
-          </div>
         </div>
 
-        {/* Footer Note (Matching Image 5) */}
-        <div className="mt-8 text-center text-xs text-blue-100/70 font-medium">
-          &copy; 2026 Tirta Ardhia Rinjani
+        {/* Footer Note */}
+        <div className="mt-8 text-center text-xs text-slate-500 font-medium">
+          &copy; 2026 PERUMDAM Tirta Ardhia Rinjani
         </div>
       </div>
     </div>
