@@ -93,7 +93,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#fafafa] dark:bg-dark-bg text-neutral-900 dark:text-neutral-100 transition-colors duration-150">
+    <div className="flex h-screen overflow-hidden bg-[var(--bg-app)] text-neutral-900 dark:text-neutral-100 transition-colors duration-150">
       {/* Sidebar Navigation */}
       <Sidebar
         isOpen={sidebarOpen}

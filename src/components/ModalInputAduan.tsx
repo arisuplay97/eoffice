@@ -4,13 +4,7 @@ import React, { useState } from "react";
 import {
   X,
   PlusCircle,
-  Building2,
-  User,
-  Phone,
-  MapPin,
   AlertCircle,
-  FileText,
-  CheckCircle2,
 } from "lucide-react";
 import { CABANG_LIST, WILAYAH_LIST, UNIT_LIST } from "@/lib/constants";
 import { JenisGangguan, Prioritas, SumberAduan } from "@prisma/client";
@@ -90,20 +84,27 @@ export default function ModalInputAduan({
     }
   };
 
+  // Shared input class
+  const inputCls = "input-premium w-full rounded-xl border border-neutral-200/60 bg-white px-3.5 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none dark:border-neutral-700/40 dark:bg-neutral-800/40 dark:text-neutral-200 dark:placeholder:text-neutral-600 dark:focus:border-blue-500";
+
+  const selectCls = "input-premium w-full rounded-xl border border-neutral-200/60 bg-white px-3.5 py-2.5 text-sm text-neutral-800 focus:border-blue-500 focus:outline-none dark:border-neutral-700/40 dark:bg-neutral-800/40 dark:text-neutral-200 dark:focus:border-blue-500 appearance-none";
+
+  const labelCls = "mb-1.5 block text-xs font-semibold text-neutral-600 dark:text-neutral-400";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-neutral-200/90 bg-white p-6 shadow-2xl dark:border-dark-border dark:bg-dark-card my-8 transition-all">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-neutral-200/40 bg-white p-6 shadow-2xl dark:border-neutral-700/30 dark:bg-neutral-900 my-8 animate-fade-in">
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-neutral-100 dark:border-dark-border pb-4">
+        <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 dark:bg-dark-elevated text-neutral-900 dark:text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
               <PlusCircle className="h-5 w-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-neutral-900 dark:text-white">
                 Input Aduan Baru
               </h2>
-              <p className="text-xs text-neutral-500 dark:text-dark-muted">
+              <p className="text-xs text-neutral-500 dark:text-neutral-500">
                 Pencatatan gangguan air dari telepon pengaduan, loket, atau laporan teknisi
               </p>
             </div>
@@ -112,29 +113,29 @@ export default function ModalInputAduan({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-dark-hover dark:hover:text-white transition"
+            className="rounded-xl p-2 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-white transition"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {error && (
-          <div className="mt-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300">
+          <div className="mt-4 flex items-center gap-2 rounded-xl border border-rose-200/60 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-800/40 dark:bg-rose-950/30 dark:text-rose-300">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-5 text-xs">
+        <form onSubmit={handleSubmit} className="mt-5 space-y-6">
           {/* Section 1: Identitas Pelanggan */}
           <div>
-            <div className="mb-3 text-[11px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+            <div className="mb-3 text-[11px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-600">
               1. Identitas Pelanggan & Lokasi
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block font-semibold text-neutral-700 dark:text-neutral-300">
+                <label className={labelCls}>
                   Nama Pelanggan / Pelapor <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -142,13 +143,13 @@ export default function ModalInputAduan({
                   value={namaPelanggan}
                   onChange={(e) => setNamaPelanggan(e.target.value)}
                   placeholder="Nama lengkap pelanggan"
-                  className="w-full rounded-xl border border-neutral-200/90 bg-neutral-50/50 px-3 py-2 text-xs text-neutral-800 dark:border-dark-border dark:bg-dark-elevated dark:text-neutral-200 focus:border-emerald-600 focus:bg-white focus:outline-none dark:focus:bg-dark-card"
+                  className={inputCls}
                   required
                 />
               </div>
 
               <div>
-                <label className="mb-1 block font-semibold text-neutral-700 dark:text-neutral-300">
+                <label className={labelCls}>
                   Nomor Pelanggan (ID Sambungan) <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -156,13 +157,13 @@ export default function ModalInputAduan({
                   value={noPelanggan}
                   onChange={(e) => setNoPelanggan(e.target.value)}
                   placeholder="Contoh: 01048291"
-                  className="w-full rounded-xl border border-neutral-200/90 bg-neutral-50/50 px-3 py-2 font-mono text-xs text-neutral-800 dark:border-dark-border dark:bg-dark-elevated dark:text-neutral-200 focus:border-emerald-600 focus:bg-white focus:outline-none dark:focus:bg-dark-card"
+                  className={`${inputCls} font-mono`}
                   required
                 />
               </div>
 
               <div>
-                <label className="mb-1 block font-semibold text-neutral-700 dark:text-neutral-300">
+                <label className={labelCls}>
                   Nomor WhatsApp / HP Aktif <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -170,20 +171,20 @@ export default function ModalInputAduan({
                   value={noHp}
                   onChange={(e) => setNoHp(e.target.value)}
                   placeholder="Contoh: 08123456789"
-                  className="w-full rounded-xl border border-neutral-200/90 bg-neutral-50/50 px-3 py-2 font-mono text-xs text-neutral-800 dark:border-dark-border dark:bg-dark-elevated dark:text-neutral-200 focus:border-emerald-600 focus:bg-white focus:outline-none dark:focus:bg-dark-card"
+                  className={`${inputCls} font-mono`}
                   required
                 />
               </div>
 
               {canSeeAll && (
                 <div>
-                  <label className="mb-1 block font-semibold text-neutral-700 dark:text-neutral-300">
+                  <label className={labelCls}>
                     Cabang Bertanggung Jawab <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={cabangId}
                     onChange={(e) => setCabangId(e.target.value)}
-                    className="w-full rounded-xl border border-neutral-200/90 bg-neutral-50/50 px-3 py-2 text-xs text-neutral-800 dark:border-dark-border dark:bg-dark-elevated dark:text-neutral-200 focus:border-emerald-600 focus:outline-none"
+                    className={selectCls}
                   >
                     {CABANG_LIST.map((c) => (
                       <option key={c.kode} value={c.kode}>
@@ -195,36 +196,36 @@ export default function ModalInputAduan({
               )}
 
               <div className="sm:col-span-2">
-                <label className="mb-1 block font-semibold text-neutral-700 dark:text-neutral-300">
-                  Detail Alamat Lengkap (Nama Jalan, Dusun, RT/RW, Patokan Lokasi) <span className="text-rose-500">*</span>
+                <label className={labelCls}>
+                  Detail Alamat Lengkap <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   rows={2}
                   value={lokasiDetail}
                   onChange={(e) => setLokasiDetail(e.target.value)}
-                  placeholder="Contoh: Jl. Diponegoro No. 45, RT 02/RW 01, Dusun Karang Lebah, Patokan Depan Masjid Nurul Huda"
-                  className="w-full rounded-xl border border-neutral-200/90 bg-neutral-50/50 px-3 py-2 text-xs text-neutral-800 dark:border-dark-border dark:bg-dark-elevated dark:text-neutral-200 focus:border-emerald-600 focus:bg-white focus:outline-none dark:focus:bg-dark-card"
+                  placeholder="Contoh: Jl. Diponegoro No. 45, RT 02/RW 01, Dusun Karang Lebah"
+                  className={inputCls}
                   required
                 />
               </div>
             </div>
           </div>
 
-          {/* Section 2: Klasifikasi Gangguan & Prioritas */}
+          {/* Section 2: Klasifikasi Gangguan */}
           <div>
-            <div className="mb-3 text-[11px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+            <div className="mb-3 text-[11px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-600">
               2. Klasifikasi Gangguan & SLA
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block font-semibold text-neutral-700 dark:text-neutral-300">
+                <label className={labelCls}>
                   Jenis Gangguan Air <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={jenisGangguan}
                   onChange={(e) => setJenisGangguan(e.target.value as JenisGangguan)}
-                  className="w-full rounded-xl border border-neutral-200/90 bg-neutral-50/50 px-3 py-2 text-xs text-neutral-800 dark:border-dark-border dark:bg-dark-elevated dark:text-neutral-200 focus:border-emerald-600 focus:outline-none"
+                  className={selectCls}
                 >
                   <option value={JenisGangguan.AIR_MATI}>Air Mati / Tidak Mengalir</option>
                   <option value={JenisGangguan.PIPA_BOCOR}>Pipa Bocor (Jaringan/Dinas)</option>
@@ -238,30 +239,24 @@ export default function ModalInputAduan({
               </div>
 
               <div>
-                <label className="mb-1 block font-semibold text-neutral-700 dark:text-neutral-300">
+                <label className={labelCls}>
                   Prioritas Penanganan (SLA 24 Jam)
                 </label>
                 <div className="grid grid-cols-4 gap-1.5">
                   {[
-                    { val: Prioritas.RENDAH, label: "Rendah", color: "hover:border-neutral-400" },
-                    { val: Prioritas.SEDANG, label: "Sedang", color: "hover:border-sky-500" },
-                    { val: Prioritas.TINGGI, label: "Tinggi", color: "hover:border-amber-500" },
-                    { val: Prioritas.DARURAT, label: "Darurat", color: "hover:border-rose-500" },
+                    { val: Prioritas.RENDAH, label: "Rendah", activeColor: "bg-neutral-700 border-neutral-700 text-white" },
+                    { val: Prioritas.SEDANG, label: "Sedang", activeColor: "bg-sky-600 border-sky-600 text-white" },
+                    { val: Prioritas.TINGGI, label: "Tinggi", activeColor: "bg-amber-500 border-amber-500 text-white" },
+                    { val: Prioritas.DARURAT, label: "Darurat", activeColor: "bg-rose-500 border-rose-500 text-white" },
                   ].map((p) => (
                     <button
                       key={p.val}
                       type="button"
                       onClick={() => setPrioritas(p.val)}
-                      className={`rounded-lg py-2 text-center text-[11px] font-semibold transition border ${
+                      className={`rounded-lg py-2.5 text-center text-xs font-semibold transition-all border ${
                         prioritas === p.val
-                          ? p.val === Prioritas.DARURAT
-                            ? "border-rose-500 bg-rose-500 text-white shadow-sm"
-                            : p.val === Prioritas.TINGGI
-                            ? "border-amber-500 bg-amber-500 text-white shadow-sm"
-                            : p.val === Prioritas.SEDANG
-                            ? "border-sky-600 bg-sky-600 text-white shadow-sm"
-                            : "border-neutral-700 bg-neutral-700 text-white shadow-sm"
-                          : `border-neutral-200 bg-neutral-50 text-neutral-600 dark:border-dark-border dark:bg-dark-elevated dark:text-neutral-400 ${p.color}`
+                          ? `${p.activeColor} shadow-sm`
+                          : "border-neutral-200/60 bg-white text-neutral-600 hover:border-neutral-300 dark:border-neutral-700/40 dark:bg-neutral-800/40 dark:text-neutral-400 dark:hover:border-neutral-600"
                       }`}
                     >
                       {p.label}
@@ -271,35 +266,35 @@ export default function ModalInputAduan({
               </div>
             </div>
 
-            <div className="mt-3">
-              <label className="mb-1 block font-semibold text-neutral-700 dark:text-neutral-300">
+            <div className="mt-4">
+              <label className={labelCls}>
                 Deskripsi Gangguan / Keterangan Pelapor
               </label>
               <textarea
                 rows={3}
                 value={keterangan}
                 onChange={(e) => setKeterangan(e.target.value)}
-                placeholder="Jelaskan secara ringkas keluhan pelanggan (misal: pipa dinas depan pagar bocor sembur deras)..."
-                className="w-full rounded-xl border border-neutral-200/90 bg-neutral-50/50 p-3 text-xs text-neutral-800 dark:border-dark-border dark:bg-dark-elevated dark:text-neutral-200 focus:border-emerald-600 focus:bg-white focus:outline-none dark:focus:bg-dark-card"
+                placeholder="Jelaskan secara ringkas keluhan pelanggan..."
+                className={inputCls}
               />
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-neutral-100 dark:border-dark-border">
+          <div className="flex items-center justify-end gap-3 pt-5 border-t border-neutral-100 dark:border-neutral-800">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50 dark:border-dark-border dark:bg-dark-card dark:text-neutral-400 dark:hover:bg-dark-hover transition"
+              className="rounded-xl border border-neutral-200/60 bg-white px-5 py-2.5 text-sm font-medium text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700/40 dark:bg-neutral-800/40 dark:text-neutral-400 dark:hover:bg-neutral-700/40 transition"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 px-5 py-2 text-xs font-semibold shadow-sm border border-neutral-900 dark:border-white active:scale-[0.98] disabled:opacity-50 transition"
+              className="rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 px-6 py-2.5 text-sm font-semibold shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-50 transition-all"
             >
-              <span>{loading ? "Menyimpan Data..." : "Simpan Aduan Baru"}</span>
+              {loading ? "Menyimpan..." : "Simpan Aduan Baru"}
             </button>
           </div>
         </form>

@@ -4,28 +4,42 @@
 
 :root {
   color-scheme: light;
-  --bg-app: #f8fafc;
+  --bg-app: #f8f9fb;
   --surface-card: #ffffff;
-  --surface-card-subtle: #f8fafc;
-  --border-subtle: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
-  --accent-blue: #0284c7;
+  --surface-card-subtle: #f8f9fb;
+  --surface-elevated: #f1f3f5;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.12);
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --accent-primary: #2563eb;
+  --accent-emerald: #059669;
+  --accent-amber: #d97706;
+  --accent-rose: #e11d48;
+  --ring-focus: rgba(37, 99, 235, 0.25);
+  --card-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  --card-shadow-hover: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
 }
 
 .dark {
   color-scheme: dark;
-  --bg-app: #090b0e;
-  --surface-card: #111418;
-  --surface-card-subtle: #171b21;
-  --border-subtle: #222730;
-  --border-strong: #333a46;
-  --text-primary: #f8fafc;
+  --bg-app: #0a0c10;
+  --surface-card: #12151a;
+  --surface-card-subtle: #161a20;
+  --surface-elevated: #1a1f27;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.1);
+  --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --accent-blue: #38bdf8;
+  --accent-primary: #3b82f6;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #fb7185;
+  --ring-focus: rgba(59, 130, 246, 0.3);
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.2);
+  --card-shadow-hover: 0 8px 25px -5px rgba(0, 0, 0, 0.4), 0 4px 10px -4px rgba(0, 0, 0, 0.3);
 }
 
 html,
@@ -45,38 +59,70 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Custom Sleek Scrollbar */
+/* Premium Scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(0, 0, 0, 0.12);
   border-radius: 9999px;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #2b323d;
+  background: rgba(255, 255, 255, 0.08);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(0, 0, 0, 0.2);
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #3e4757;
+  background: rgba(255, 255, 255, 0.15);
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Modern SaaS Card Styles */
+/* Premium SaaS Card */
 .saas-card {
   background-color: var(--surface-card);
   border: 1px solid var(--border-subtle);
   border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
-  transition: all 0.15s ease-in-out;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .saas-card:hover {
+  box-shadow: var(--card-shadow-hover);
   border-color: var(--border-strong);
+}
+
+/* Metric Card with Sparkline */
+.metric-card {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+  box-shadow: var(--card-shadow);
+  transition: all 0.2s ease;
+}
+.metric-card:hover {
+  box-shadow: var(--card-shadow-hover);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+/* Sparkline Container */
+.sparkline-wrap {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 50%;
+  height: 50%;
+  opacity: 0.4;
+  pointer-events: none;
+}
+.metric-card:hover .sparkline-wrap {
+  opacity: 0.6;
 }
 
 /* High-Density Data Tables */
@@ -87,7 +133,6 @@ body {
   border-collapse: separate;
   border-spacing: 0;
 }
-
 .saas-table th {
   background-color: var(--surface-card-subtle);
   padding: 0.625rem 0.875rem;
@@ -99,14 +144,12 @@ body {
   letter-spacing: 0.05em;
   white-space: nowrap;
 }
-
 .saas-table td {
   padding: 0.75rem 0.875rem;
   border-bottom: 1px solid var(--border-subtle);
   color: var(--text-primary);
   vertical-align: middle;
 }
-
 .saas-table tr:hover td {
   background-color: var(--surface-card-subtle);
 }
@@ -123,6 +166,29 @@ body {
   line-height: 1;
   white-space: nowrap;
   border-width: 1px;
+}
+
+/* Subtle Glow on Focus */
+.input-premium {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.input-premium:focus {
+  box-shadow: 0 0 0 3px var(--ring-focus);
+}
+
+/* Smooth fade-in for cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fadeInUp 0.3s ease-out both;
 }
 
 /* Print Only Styles */

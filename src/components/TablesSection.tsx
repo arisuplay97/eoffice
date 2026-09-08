@@ -6,15 +6,10 @@ import {
   ArrowRightLeft,
   Eye,
   CheckCircle2,
-  AlertCircle,
   Search,
   ChevronLeft,
   ChevronRight,
-  User,
   MapPin,
-  Flame,
-  ShieldCheck,
-  AlertTriangle,
 } from "lucide-react";
 import { STATUS_LABELS, PRIORITAS_LABELS, JENIS_GANGGUAN_LABELS } from "@/lib/constants";
 import { StatusAduan, Prioritas, JenisGangguan } from "@prisma/client";
@@ -116,31 +111,31 @@ export default function TablesSection({
   const getPriorityBadge = (p: Prioritas) => {
     switch (p) {
       case Prioritas.DARURAT:
-        return "border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400";
+        return "bg-rose-500/8 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/15";
       case Prioritas.TINGGI:
-        return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400";
+        return "bg-amber-500/8 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/15";
       case Prioritas.SEDANG:
-        return "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-400";
+        return "bg-sky-500/8 text-sky-600 dark:text-sky-400 ring-1 ring-sky-500/15";
       default:
-        return "border-slate-500/20 bg-slate-500/10 text-slate-600 dark:text-slate-400";
+        return "bg-neutral-500/8 text-neutral-600 dark:text-neutral-400 ring-1 ring-neutral-500/15";
     }
   };
 
   const getStatusBadge = (s: StatusAduan) => {
     switch (s) {
       case StatusAduan.BARU:
-        return "border-slate-500/20 bg-slate-500/10 text-slate-600 dark:text-slate-400";
+        return "bg-neutral-500/8 text-neutral-600 dark:text-neutral-400 ring-1 ring-neutral-500/15";
       case StatusAduan.DIRESPONS:
-        return "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-400";
+        return "bg-sky-500/8 text-sky-600 dark:text-sky-400 ring-1 ring-sky-500/15";
       case StatusAduan.PROSES:
       case StatusAduan.DALAM_PENGERJAAN:
-        return "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400";
+        return "bg-amber-500/8 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/15";
       case StatusAduan.KENDALA:
-        return "border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400";
+        return "bg-rose-500/8 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/15";
       case StatusAduan.SELESAI:
-        return "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
+        return "bg-emerald-500/8 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/15";
       default:
-        return "border-purple-500/20 bg-purple-500/10 text-purple-600 dark:text-purple-400";
+        return "bg-purple-500/8 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/15";
     }
   };
 
@@ -152,9 +147,9 @@ export default function TablesSection({
     if (rows.length === 0) {
       return (
         <tr>
-          <td colSpan={9} className="py-12 text-center text-xs text-slate-400 dark:text-dark-muted">
-            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 dark:bg-dark-elevated mb-2">
-              <CheckCircle2 className="h-5 w-5 text-slate-400" />
+          <td colSpan={9} className="py-16 text-center text-sm text-neutral-400 dark:text-neutral-600">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 dark:bg-neutral-800 mb-3">
+              <CheckCircle2 className="h-5 w-5 text-neutral-400 dark:text-neutral-600" />
             </div>
             Tidak ada tiket pada kategori ini
           </td>
@@ -165,29 +160,29 @@ export default function TablesSection({
     return rows.map((item) => (
       <tr
         key={item.id}
-        className="transition hover:bg-slate-50/80 dark:hover:bg-dark-elevated/40"
+        className="group transition-colors hover:bg-neutral-50/80 dark:hover:bg-neutral-800/30"
       >
-        {/* ID Tiket & Waktu Masuk */}
-        <td className="py-3 pl-4">
-          <div className="font-mono text-xs font-bold text-slate-900 dark:text-white">
+        {/* ID Tiket & Waktu */}
+        <td className="py-3.5 pl-5">
+          <div className="font-mono text-xs font-bold text-neutral-900 dark:text-white">
             {item.id}
           </div>
-          <div className="text-[11px] text-slate-400 dark:text-dark-muted">
+          <div className="text-[11px] text-neutral-400 dark:text-neutral-600 mt-0.5">
             {item.waktuMasukText}
           </div>
         </td>
 
-        {/* Pelanggan & No Sambungan */}
-        <td className="py-3 px-3">
+        {/* Pelanggan */}
+        <td className="py-3.5 px-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-elevated font-mono text-[10px] font-bold text-slate-700 dark:text-slate-200">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800 font-mono text-[10px] font-bold text-neutral-600 dark:text-neutral-300">
               {item.namaPelanggan.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <div className="font-semibold text-slate-900 dark:text-white truncate max-w-[140px]" title={item.namaPelanggan}>
+              <div className="font-medium text-sm text-neutral-900 dark:text-white truncate max-w-[140px]" title={item.namaPelanggan}>
                 {item.namaPelanggan}
               </div>
-              <div className="font-mono text-[11px] text-slate-400 dark:text-dark-muted">
+              <div className="font-mono text-[11px] text-neutral-400 dark:text-neutral-600">
                 #{item.noPelanggan}
               </div>
             </div>
@@ -195,91 +190,87 @@ export default function TablesSection({
         </td>
 
         {/* Cabang & Wilayah */}
-        <td className="py-3 px-3">
-          <div className="font-medium text-slate-800 dark:text-slate-200">
+        <td className="py-3.5 px-3">
+          <div className="font-medium text-sm text-neutral-800 dark:text-neutral-200">
             {item.cabangNama}
           </div>
-          <div className="text-[11px] text-slate-400 dark:text-dark-muted flex items-center gap-1">
+          <div className="text-[11px] text-neutral-400 dark:text-neutral-600 flex items-center gap-1 mt-0.5">
             <MapPin className="h-3 w-3 shrink-0" />
             <span className="truncate max-w-[110px]" title={item.wilayah}>{item.wilayah}</span>
           </div>
         </td>
 
         {/* Jenis Gangguan & Prioritas */}
-        <td className="py-3 px-3">
-          <div className="font-medium text-slate-900 dark:text-white truncate max-w-[150px]" title={JENIS_GANGGUAN_LABELS[item.jenisGangguan] || item.jenisGangguan}>
+        <td className="py-3.5 px-3">
+          <div className="font-medium text-sm text-neutral-900 dark:text-white truncate max-w-[150px]" title={JENIS_GANGGUAN_LABELS[item.jenisGangguan] || item.jenisGangguan}>
             {JENIS_GANGGUAN_LABELS[item.jenisGangguan] || item.jenisGangguan}
           </div>
-          <div className="mt-0.5">
+          <div className="mt-1">
             <span
-              className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold border ${getPriorityBadge(
-                item.prioritas
-              )}`}
+              className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${getPriorityBadge(item.prioritas)}`}
             >
               {PRIORITAS_LABELS[item.prioritas] || item.prioritas}
             </span>
           </div>
         </td>
 
-        {/* Detail Keluhan Pelanggan */}
-        <td className="py-3 px-3 max-w-[220px]">
-          <div className="font-medium text-slate-800 dark:text-slate-200 line-clamp-2 leading-relaxed" title={item.keterangan || "-"}>
-            {item.keterangan || <span className="text-slate-400 italic font-normal">Tidak ada catatan</span>}
+        {/* Detail Keluhan */}
+        <td className="py-3.5 px-3 max-w-[220px]">
+          <div className="text-sm text-neutral-700 dark:text-neutral-300 line-clamp-2 leading-relaxed" title={item.keterangan || "-"}>
+            {item.keterangan || <span className="text-neutral-400 italic">Tidak ada catatan</span>}
           </div>
           {item.lokasiDetail && (
-            <div className="mt-1 text-[11px] text-slate-400 dark:text-dark-muted truncate flex items-center gap-1" title={item.lokasiDetail}>
-              <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
+            <div className="mt-1 text-[11px] text-neutral-400 dark:text-neutral-600 truncate flex items-center gap-1" title={item.lokasiDetail}>
+              <MapPin className="h-3 w-3 shrink-0" />
               <span className="truncate">{item.lokasiDetail}</span>
             </div>
           )}
         </td>
 
-        {/* SLA Status / Countdown */}
-        <td className="py-3 px-3">
+        {/* SLA */}
+        <td className="py-3.5 px-3">
           {isSelesai ? (
-            <div className="font-mono text-[11px] text-slate-600 dark:text-slate-300">
+            <div className="font-mono text-xs text-neutral-600 dark:text-neutral-400">
               {item.sla.durasiText || item.waktuSelesaiText}
             </div>
           ) : (
             <div>
               <span
-                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
                   item.sla.statusCode === "ACTIVE_LATE"
-                    ? "border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                    ? "bg-rose-500/8 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/15"
                     : item.sla.statusCode === "ACTIVE_NEAR"
-                    ? "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                    : "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-400"
+                    ? "bg-amber-500/8 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/15"
+                    : "bg-sky-500/8 text-sky-600 dark:text-sky-400 ring-1 ring-sky-500/15"
                 }`}
               >
                 <Clock className="h-2.5 w-2.5" />
                 <span>{item.sla.statusLabel}</span>
               </span>
-              <div className="mt-0.5 font-mono text-[10px] text-slate-400 dark:text-dark-muted">
+              <div className="mt-0.5 font-mono text-[10px] text-neutral-400 dark:text-neutral-600">
                 {item.sla.selisihText}
               </div>
             </div>
           )}
         </td>
 
-        {/* Status Aduan Pill */}
-        <td className="py-3 px-3">
+        {/* Status */}
+        <td className="py-3.5 px-3">
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold border ${getStatusBadge(
-              item.status
-            )}`}
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${getStatusBadge(item.status)}`}
           >
             {STATUS_LABELS[item.status] || item.status}
           </span>
         </td>
 
-        {/* Action Buttons */}
-        <td className="py-3 pr-4 text-right">
-          <div className="flex items-center justify-end gap-1.5">
+        {/* Actions */}
+        <td className="py-3.5 pr-5 text-right">
+          <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
             <button
               type="button"
               onClick={() => onOpenDetail(item.id)}
-              className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:border-dark-border dark:text-slate-400 dark:hover:bg-dark-hover dark:hover:text-white transition"
-              title="Lihat Detail Aduan"
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200/60 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 dark:border-neutral-700/40 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-white transition"
+              title="Lihat Detail"
             >
               <Eye className="h-3.5 w-3.5" />
             </button>
@@ -288,8 +279,8 @@ export default function TablesSection({
               <button
                 type="button"
                 onClick={() => onOpenAksi(item)}
-                className="flex h-7 items-center gap-1 rounded-lg bg-sky-600 px-2 text-[11px] font-medium text-white hover:bg-sky-500 transition shadow-sm"
-                title="Update Status & Dokumentasi"
+                className="flex h-7 items-center gap-1 rounded-lg bg-neutral-900 dark:bg-white px-2.5 text-[11px] font-medium text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-200 transition shadow-sm"
+                title="Update Status"
               >
                 <CheckCircle2 className="h-3 w-3" />
                 <span>Aksi</span>
@@ -300,7 +291,7 @@ export default function TablesSection({
               <button
                 type="button"
                 onClick={() => onOpenAlihkan(item)}
-                className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:border-dark-border dark:text-slate-400 dark:hover:bg-dark-hover dark:hover:text-white transition"
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200/60 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 dark:border-neutral-700/40 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-white transition"
                 title="Alihkan Cabang"
               >
                 <ArrowRightLeft className="h-3 w-3" />
@@ -334,62 +325,64 @@ export default function TablesSection({
 
   const totalPages = Math.max(1, Math.ceil(currentTotal / PAGE_SIZE));
 
+  const tabs = [
+    {
+      key: "fokus" as const,
+      label: "Fokus Penanganan",
+      count: tables.fokus.length,
+      dotColor: "bg-rose-500",
+      countColor: "text-rose-600 dark:text-rose-400 bg-rose-500/8",
+      hasPulse: true,
+    },
+    {
+      key: "terbaru" as const,
+      label: "Aduan Terbaru",
+      count: tables.terbaru.length,
+      dotColor: "bg-sky-500",
+      countColor: "text-sky-600 dark:text-sky-400 bg-sky-500/8",
+      hasPulse: false,
+    },
+    {
+      key: "selesai" as const,
+      label: "Aduan Selesai",
+      count: tables.selesai.length,
+      dotColor: "bg-emerald-500",
+      countColor: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/8",
+      hasPulse: false,
+    },
+  ];
+
   return (
-    <section className="space-y-4">
-      {/* Universal Search & Category Tabs Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm dark:border-dark-border dark:bg-dark-card">
-        {/* Modern Tab Selector */}
-        <div className="inline-flex rounded-xl border border-slate-200/80 bg-slate-50 p-1 text-xs font-semibold dark:border-dark-border dark:bg-dark-elevated">
-          <button
-            type="button"
-            onClick={() => setActiveTab("fokus")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition ${
-              activeTab === "fokus"
-                ? "bg-white text-slate-900 shadow-sm dark:bg-dark-card dark:text-white"
-                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            }`}
-          >
-            <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-            <span>Fokus Penanganan</span>
-            <span className="rounded-full bg-rose-500/10 px-1.5 py-0.2 text-[10px] text-rose-600 dark:text-rose-400 font-mono">
-              {tables.fokus.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("terbaru")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition ${
-              activeTab === "terbaru"
-                ? "bg-white text-slate-900 shadow-sm dark:bg-dark-card dark:text-white"
-                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            }`}
-          >
-            <span>Aduan Terbaru</span>
-            <span className="rounded-full bg-sky-500/10 px-1.5 py-0.2 text-[10px] text-sky-600 dark:text-sky-400 font-mono">
-              {tables.terbaru.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("selesai")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition ${
-              activeTab === "selesai"
-                ? "bg-white text-slate-900 shadow-sm dark:bg-dark-card dark:text-white"
-                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-            }`}
-          >
-            <span>Aduan Selesai</span>
-            <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.2 text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
-              {tables.selesai.length}
-            </span>
-          </button>
+    <section className="space-y-3">
+      {/* Tab Bar & Search */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 saas-card p-3">
+        {/* Tabs */}
+        <div className="inline-flex rounded-xl bg-neutral-100/80 dark:bg-neutral-800/50 p-1 text-xs font-medium">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 transition-all ${
+                activeTab === tab.key
+                  ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white font-semibold"
+                  : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-white"
+              }`}
+            >
+              {tab.hasPulse && (
+                <span className={`h-1.5 w-1.5 rounded-full ${tab.dotColor} animate-pulse`} />
+              )}
+              <span>{tab.label}</span>
+              <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-mono font-semibold ${tab.countColor}`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
         </div>
 
-        {/* Search Input Bar */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
+        {/* Search */}
+        <div className="relative flex-1 max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
           <input
             type="text"
             value={searchQuery}
@@ -397,29 +390,29 @@ export default function TablesSection({
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            placeholder="Cari ID tiket, pelanggan, no hp, wilayah..."
-            className="w-full rounded-xl border border-slate-200/80 bg-slate-50/50 pl-10 pr-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 transition focus:border-sky-500 focus:bg-white focus:outline-none dark:border-dark-border dark:bg-dark-elevated/50 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-sky-500 dark:focus:bg-dark-card"
+            placeholder="Cari tiket, pelanggan, wilayah..."
+            className="input-premium w-full rounded-xl border border-neutral-200/60 bg-neutral-50/50 pl-10 pr-3 py-2 text-xs text-neutral-800 placeholder:text-neutral-400 focus:border-blue-500 focus:bg-white focus:outline-none dark:border-neutral-700/40 dark:bg-neutral-800/30 dark:text-neutral-200 dark:placeholder:text-neutral-500 dark:focus:border-blue-500"
           />
         </div>
       </div>
 
-      {/* High-Density Data Table Card */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-dark-border dark:bg-dark-card">
+      {/* Data Table */}
+      <div className="overflow-hidden saas-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/50 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:border-dark-border dark:bg-dark-elevated/30 dark:text-dark-muted">
-                <th className="py-3 pl-4">ID Tiket</th>
-                <th className="py-3 px-3">Pelanggan</th>
-                <th className="py-3 px-3">Cabang & Wilayah</th>
-                <th className="py-3 px-3">Gangguan & Prioritas</th>
-                <th className="py-3 px-3">Detail Keluhan</th>
-                <th className="py-3 px-3">Target SLA</th>
-                <th className="py-3 px-3">Status</th>
-                <th className="py-3 pr-4 text-right">Aksi</th>
+              <tr className="border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/20 text-[11px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-600">
+                <th className="py-3 pl-5 font-semibold">ID Tiket</th>
+                <th className="py-3 px-3 font-semibold">Pelanggan</th>
+                <th className="py-3 px-3 font-semibold">Cabang & Wilayah</th>
+                <th className="py-3 px-3 font-semibold">Gangguan & Prioritas</th>
+                <th className="py-3 px-3 font-semibold">Detail Keluhan</th>
+                <th className="py-3 px-3 font-semibold">Target SLA</th>
+                <th className="py-3 px-3 font-semibold">Status</th>
+                <th className="py-3 pr-5 text-right font-semibold">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-dark-border">
+            <tbody className="divide-y divide-neutral-100/80 dark:divide-neutral-800/50">
               {activeTab === "fokus" &&
                 renderTableBody(paginate(filteredFokus, fokusPage), true)}
               {activeTab === "terbaru" &&
@@ -430,22 +423,22 @@ export default function TablesSection({
           </table>
         </div>
 
-        {/* Clean SaaS Pagination Bar (Reference Image 2) */}
-        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 text-xs dark:border-dark-border">
-          <div className="text-slate-500 dark:text-dark-muted">
+        {/* Pagination */}
+        <div className="flex items-center justify-between border-t border-neutral-100/80 dark:border-neutral-800/50 px-5 py-3 text-xs">
+          <div className="text-neutral-500 dark:text-neutral-500">
             Menampilkan{" "}
-            <span className="font-semibold text-slate-800 dark:text-slate-200">
+            <span className="font-semibold text-neutral-700 dark:text-neutral-300">
               {currentTotal > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0}
-            </span>{" "}
-            -{" "}
-            <span className="font-semibold text-slate-800 dark:text-slate-200">
+            </span>
+            {" - "}
+            <span className="font-semibold text-neutral-700 dark:text-neutral-300">
               {Math.min(currentPage * PAGE_SIZE, currentTotal)}
-            </span>{" "}
-            dari{" "}
-            <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
+            </span>
+            {" dari "}
+            <span className="font-mono font-semibold text-neutral-700 dark:text-neutral-300">
               {currentTotal}
-            </span>{" "}
-            aduan
+            </span>
+            {" aduan"}
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -453,13 +446,13 @@ export default function TablesSection({
               type="button"
               disabled={currentPage <= 1}
               onClick={() => setCurrentPage(currentPage - 1)}
-              className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:border-dark-border dark:text-slate-300 dark:hover:bg-dark-hover"
+              className="flex items-center gap-1 rounded-lg border border-neutral-200/60 dark:border-neutral-700/40 px-2.5 py-1.5 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-30 transition"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
-              <span>Sebelumnya</span>
+              <span>Prev</span>
             </button>
 
-            <span className="font-mono px-2 text-slate-600 dark:text-slate-400">
+            <span className="font-mono px-2.5 text-neutral-500 dark:text-neutral-500">
               {currentPage} / {totalPages}
             </span>
 
@@ -467,9 +460,9 @@ export default function TablesSection({
               type="button"
               disabled={currentPage >= totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
-              className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:border-dark-border dark:text-slate-300 dark:hover:bg-dark-hover"
+              className="flex items-center gap-1 rounded-lg border border-neutral-200/60 dark:border-neutral-700/40 px-2.5 py-1.5 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-30 transition"
             >
-              <span>Selanjutnya</span>
+              <span>Next</span>
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
