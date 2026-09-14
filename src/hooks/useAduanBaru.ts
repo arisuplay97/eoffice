@@ -5,6 +5,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 export interface AduanBaru {
   id: string;
   namaPelanggan: string;
+  noPelanggan?: string;
+  noHp?: string;
   jenisGangguan: string;
   prioritas: string;
   cabangNama: string;

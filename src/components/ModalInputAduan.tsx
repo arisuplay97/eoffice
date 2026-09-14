@@ -82,6 +82,8 @@ export default function ModalInputAduan({
         broadcastAduanBaru({
           id: data.aduan.id,
           namaPelanggan: data.aduan.namaPelanggan,
+          noPelanggan: data.aduan.noPelanggan || "-",
+          noHp: data.aduan.noHp || "-",
           jenisGangguan: data.aduan.jenisGangguan,
           prioritas: data.aduan.prioritas,
           cabangNama: data.aduan.cabang?.nama || matched?.nama || "-",

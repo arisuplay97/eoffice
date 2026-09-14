@@ -23,11 +23,8 @@ export async function GET() {
       return NextResponse.json({ ok: true, items: [] });
     }
 
-    const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
-
     const where: any = {
       status: StatusAduan.BARU,
-      waktuMasuk: { gte: threeMinutesAgo },
     };
 
     // Branch scoping: ADMIN_CABANG only sees their own branch
@@ -40,6 +37,8 @@ export async function GET() {
       select: {
         id: true,
         namaPelanggan: true,
+        noPelanggan: true,
+        noHp: true,
         jenisGangguan: true,
         prioritas: true,
         wilayah: true,
@@ -51,12 +50,14 @@ export async function GET() {
         },
       },
       orderBy: { waktuMasuk: "desc" },
-      take: 10,
+      take: 15,
     });
 
     const mapped = items.map((item) => ({
       id: item.id,
       namaPelanggan: item.namaPelanggan,
+      noPelanggan: item.noPelanggan || "-",
+      noHp: item.noHp || "-",
       jenisGangguan: item.jenisGangguan,
       prioritas: item.prioritas,
       cabangNama: item.cabang?.nama || "-",
