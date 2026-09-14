@@ -12,6 +12,8 @@ import ModalAlihkanCabang from "@/components/ModalAlihkanCabang";
 import ModalDetailAduan from "@/components/ModalDetailAduan";
 import ModalExportLaporan from "@/components/ModalExportLaporan";
 import ModalPengaturan from "@/components/ModalPengaturan";
+import AnnouncementPopup from "@/components/AnnouncementPopup";
+import { useAduanBaru } from "@/hooks/useAduanBaru";
 import { MessageSquare } from "lucide-react";
 import Link from "next/link";
 
@@ -38,6 +40,9 @@ export default function DashboardPage() {
   const [detailAduanId, setDetailAduanId] = useState<string | null>(null);
   const [modalExportOpen, setModalExportOpen] = useState(false);
   const [modalSettingsOpen, setModalSettingsOpen] = useState(false);
+
+  // Announcement popup for new aduan
+  const { pendingAduan, dismiss: dismissAduan, dismissAll: dismissAllAduan } = useAduanBaru(data?.user?.role);
 
   const fetchDashboardData = useCallback(async (isBackground = false) => {
     if (!isBackground) setLoading(true);
@@ -262,6 +267,15 @@ export default function DashboardPage() {
           onClose={() => setModalSettingsOpen(false)}
         />
       )}
+
+      {/* Announcement Popup for new aduan */}
+      <AnnouncementPopup
+        items={pendingAduan}
+        onDismiss={dismissAduan}
+        onDismissAll={dismissAllAduan}
+        onViewDetail={(id) => setDetailAduanId(id)}
+        onDashboardRefresh={() => fetchDashboardData()}
+      />
     </div>
   );
 }

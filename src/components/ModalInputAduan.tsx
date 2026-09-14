@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { CABANG_LIST, WILAYAH_LIST, UNIT_LIST } from "@/lib/constants";
 import { JenisGangguan, Prioritas, SumberAduan } from "@prisma/client";
+import { broadcastAduanBaru } from "@/hooks/useAduanBaru";
 
 interface ModalInputAduanProps {
   isOpen: boolean;
@@ -73,6 +74,22 @@ export default function ModalInputAduan({
       const data = await res.json();
       if (!res.ok || !data.ok) {
         throw new Error(data.error || "Gagal mencatat aduan.");
+      }
+
+      // Broadcast to other tabs for instant popup notification
+      if (data.aduan) {
+        const matched = CABANG_LIST.find((c) => c.kode === cabangId || c.nama === cabangId);
+        broadcastAduanBaru({
+          id: data.aduan.id,
+          namaPelanggan: data.aduan.namaPelanggan,
+          jenisGangguan: data.aduan.jenisGangguan,
+          prioritas: data.aduan.prioritas,
+          cabangNama: data.aduan.cabang?.nama || matched?.nama || "-",
+          wilayah: data.aduan.wilayah || matched?.wilayah || "-",
+          waktuMasuk: data.aduan.waktuMasuk || new Date().toISOString(),
+          sumberAduan: data.aduan.sumberAduan || "DASHBOARD",
+          keterangan: data.aduan.keterangan || "",
+        });
       }
 
       onSuccess();
