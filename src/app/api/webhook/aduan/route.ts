@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { StatusAduan, Prioritas, JenisGangguan, SumberAduan } from "@prisma/client";
+import { StatusAduan, Prioritas, JenisGangguan, SumberAduan, TipeDokumentasi } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -58,20 +58,86 @@ function normalizePrioritas(input?: string, keteranganText?: string): Prioritas 
   return Prioritas.SEDANG;
 }
 
-// GET: Healthcheck / Webhook URL verification endpoint
-export async function GET() {
-  return NextResponse.json({
-    ok: true,
-    service: "SIAGA TIARA Webhook Receiver",
-    name: "SIAGA_TIARA_INCOMING",
-    status: "active",
-    endpoint: "/api/webhook/aduan",
-    description: "Endpoint webhook untuk menerima aduan masuk dari WhatsApp / Call Center / Google Script",
-    version: "2.0.0",
-  });
+// GET: Healthcheck OR Check Aduan Status (Mobile Tracking)
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const noHp = searchParams.get("noHp");
+    const noPelanggan = searchParams.get("noPelanggan");
+
+    // If query params are provided, act as tracking API for Mobile App
+    if (id || noHp || noPelanggan) {
+      const where: any = {};
+      if (id) where.id = id.trim();
+      else if (noHp) where.noHp = { contains: noHp.replace(/[^0-9]/g, "").trim() };
+      else if (noPelanggan) where.noPelanggan = noPelanggan.trim();
+
+      const aduanList = await prisma.aduan.findMany({
+        where,
+        include: {
+          cabang: { select: { nama: true, kode: true, kontak: true } },
+          statusLogs: {
+            orderBy: { waktu: "desc" },
+            take: 5,
+            select: { statusBaru: true, waktu: true, actorNama: true, keterangan: true },
+          },
+          penugasan: {
+            include: {
+              petugas: { select: { nama: true, role: true, noHp: true } },
+            },
+          },
+          dokumentasi: {
+            select: { id: true, fotoUrl: true, tipeFoto: true, caption: true, createdAt: true },
+          },
+        },
+        orderBy: { waktuMasuk: "desc" },
+        take: 10,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        count: aduanList.length,
+        items: aduanList,
+      });
+    }
+
+    // Default: Healthcheck & Mobile Webhook documentation
+    return NextResponse.json({
+      ok: true,
+      service: "SIAGA TIARA Webhook & Mobile Gateway",
+      name: "SIAGA_TIARA_GATEWAY",
+      status: "active",
+      endpoint: "/api/webhook/aduan",
+      description: "Endpoint webhook & REST API untuk menerima aduan masuk dari Aplikasi Mobile, WhatsApp, Call Center",
+      supported_methods: ["GET", "POST"],
+      payload_documentation: {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: {
+          namaPelanggan: "Nama Pengadu / Warga (wajib)",
+          noHp: "Nomor WhatsApp / HP (wajib)",
+          noPelanggan: "Nomor ID Pelanggan / Meter (opsional)",
+          jenisGangguan: "AIR_MATI | PIPA_BOCOR | AIR_KERUH | TEKANAN_RENDAH | METER_BERMASALAH | TAGIHAN | LAINNYA",
+          prioritas: "DARURAT | TINGGI | SEDANG | RENDAH",
+          keterangan: "Deskripsi detail keluhan / laporan warga",
+          cabang: "Kode/Nama cabang (cth: Praya, Jonggat, PRY, dll) (opsional)",
+          wilayah: "Nama dusun/desa/kecamatan atau alamat (opsional)",
+          lokasiDetail: "Patokan lokasi / RT / RW (opsional)",
+          latitude: -8.7042, // GPS mobile (opsional)
+          longitude: 116.2731, // GPS mobile (opsional)
+          fotoUrl: "URL foto aduan dari kamera HP (opsional)",
+          sumber: "APLIKASI" // Sumber: APLIKASI | WHATSAPP | TELEPON
+        }
+      },
+      version: "2.1.0",
+    });
+  } catch (err: any) {
+    return NextResponse.json({ ok: false, error: err?.message || "Gagal memproses permintaan." }, { status: 500 });
+  }
 }
 
-// POST: Process incoming complaint webhook
+// POST: Process incoming complaint webhook (Mobile App / WhatsApp / Webhook)
 export async function POST(req: NextRequest) {
   try {
     let body: any = {};
@@ -104,7 +170,7 @@ export async function POST(req: NextRequest) {
       body.senderName ||
       body.pushName ||
       body.sender ||
-      "Pelanggan WhatsApp";
+      "Pelanggan Mobile";
 
     const rawNoHp =
       body.noHp ||
@@ -179,7 +245,31 @@ export async function POST(req: NextRequest) {
     const jenisGangguan = normalizeJenisGangguan(body.jenisGangguan || rawKeterangan);
     const prioritas = normalizePrioritas(body.prioritas, rawKeterangan);
 
-    // Generate unique ID
+    // Parse GPS Coordinates from Mobile App if provided
+    const rawLat = body.latitude ?? body.lat;
+    const rawLng = body.longitude ?? body.lng ?? body.long;
+    const parsedLat = rawLat !== undefined && rawLat !== null && rawLat !== "" ? parseFloat(String(rawLat)) : null;
+    const parsedLng = rawLng !== undefined && rawLng !== null && rawLng !== "" ? parseFloat(String(rawLng)) : null;
+    const latitude = parsedLat !== null && !isNaN(parsedLat) ? parsedLat : null;
+    const longitude = parsedLng !== null && !isNaN(parsedLng) ? parsedLng : null;
+
+    let linkMaps = body.linkMaps || null;
+    if (!linkMaps && latitude !== null && longitude !== null) {
+      linkMaps = `https://www.google.com/maps?q=${latitude},${longitude}`;
+    }
+
+    // Detect Source (Mobile App / WhatsApp / Call Center)
+    const rawSumber = String(body.sumber || body.sumberAduan || body.source || "").toUpperCase();
+    const isMobile = rawSumber.includes("MOBILE") || rawSumber.includes("APLIKASI") || rawSumber.includes("APP");
+    const isTelepon = rawSumber.includes("TELEPON") || rawSumber.includes("PHONE") || rawSumber.includes("CALL");
+    const isLangsung = rawSumber.includes("LANGSUNG") || rawSumber.includes("WALKIN");
+
+    let sumberAduanEnum: SumberAduan = SumberAduan.WHATSAPP;
+    if (isTelepon) sumberAduanEnum = SumberAduan.TELEPON;
+    else if (isLangsung) sumberAduanEnum = SumberAduan.LANGSUNG;
+    else if (rawSumber.includes("DASHBOARD")) sumberAduanEnum = SumberAduan.DASHBOARD;
+
+    // Generate unique ID (e.g. PRY260915123)
     let newId = generateAduanId(cabang.kode);
     let attempts = 0;
     while (attempts < 5) {
@@ -203,12 +293,18 @@ export async function POST(req: NextRequest) {
         jenisGangguan,
         prioritas,
         status: StatusAduan.BARU,
-        sumberAduan: SumberAduan.WHATSAPP,
-        unit: body.unit || "Cabang",
-        keterangan: rawKeterangan ? String(rawKeterangan).trim() : "Laporan aduan via Webhook WhatsApp API.",
-        catatan: body.catatan ? String(body.catatan).trim() : null,
+        sumberAduan: sumberAduanEnum,
+        unit: isMobile ? "Aplikasi Mobile" : (body.unit || "Cabang"),
+        keterangan: rawKeterangan
+          ? String(rawKeterangan).trim()
+          : (isMobile ? "Laporan masuk via Aplikasi Mobile Pelanggan." : "Laporan aduan via Webhook WhatsApp API."),
+        catatan: body.catatan
+          ? String(body.catatan).trim()
+          : (isMobile ? "Dilaporkan via Aplikasi Mobile Pelanggan" : null),
         lokasiDetail: body.lokasiDetail || body.alamat || null,
-        linkMaps: body.linkMaps || null,
+        latitude,
+        longitude,
+        linkMaps,
         waktuMasuk: now,
         slaJam: 24,
       },
@@ -217,13 +313,51 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Save photo documentation if provided by mobile app
+    const photoUrls: string[] = [];
+    if (typeof body.fotoUrl === "string" && body.fotoUrl.trim()) photoUrls.push(body.fotoUrl.trim());
+    if (typeof body.foto === "string" && body.foto.trim()) photoUrls.push(body.foto.trim());
+    if (typeof body.gambar === "string" && body.gambar.trim()) photoUrls.push(body.gambar.trim());
+    if (typeof body.image === "string" && body.image.trim()) photoUrls.push(body.image.trim());
+    if (Array.isArray(body.dokumentasi)) {
+      body.dokumentasi.forEach((p: any) => {
+        if (typeof p === "string" && p.trim()) photoUrls.push(p.trim());
+        else if (p && typeof p.fotoUrl === "string" && p.fotoUrl.trim()) photoUrls.push(p.fotoUrl.trim());
+        else if (p && typeof p.url === "string" && p.url.trim()) photoUrls.push(p.url.trim());
+      });
+    }
+
+    if (photoUrls.length > 0) {
+      for (const pUrl of photoUrls) {
+        try {
+          await prisma.dokumentasiAduan.create({
+            data: {
+              aduanId: newId,
+              tipeFoto: TipeDokumentasi.FOTO_SEBELUM,
+              fotoUrl: pUrl,
+              caption: isMobile ? "Foto keluhan dari Aplikasi Mobile" : "Foto aduan masuk",
+              uploadedBy: String(rawNama).trim() || "Pelanggan",
+              isValid: true,
+            },
+          });
+        } catch (photoErr) {
+          console.warn("Gagal menyimpan foto dokumentasi:", photoErr);
+        }
+      }
+    }
+
     // Create audit status log
+    const actor = isMobile ? "Aplikasi Mobile" : "Sistem Webhook";
+    const logDesc = isMobile
+      ? "Aduan otomatis diterima dari Aplikasi Mobile Pelanggan"
+      : `Aduan otomatis diterima dari Webhook ${body.sumber || "WhatsApp/Call Center"}`;
+
     await prisma.statusLog.create({
       data: {
         aduanId: newId,
         statusBaru: StatusAduan.BARU,
-        actorNama: "Sistem Webhook",
-        keterangan: `Aduan otomatis diterima dari Webhook ${body.sumber || "WhatsApp/Call Center"}`,
+        actorNama: actor,
+        keterangan: logDesc,
         waktu: now,
       },
     });
@@ -240,6 +374,9 @@ export async function POST(req: NextRequest) {
         jenisGangguan: aduan.jenisGangguan,
         prioritas: aduan.prioritas,
         status: aduan.status,
+        latitude: aduan.latitude,
+        longitude: aduan.longitude,
+        linkMaps: aduan.linkMaps,
         waktuMasuk: aduan.waktuMasuk.toISOString(),
       },
     });

@@ -76,11 +76,13 @@ export const JENIS_GANGGUAN_LABELS: Record<JenisGangguan, string> = {
   [JenisGangguan.LAINNYA]: "Lainnya",
 };
 
-export const SUMBER_ADUAN_LABELS: Record<SumberAduan, string> = {
+export const SUMBER_ADUAN_LABELS: Record<string, string> = {
   [SumberAduan.WHATSAPP]: "WhatsApp",
   [SumberAduan.DASHBOARD]: "Input Manual",
   [SumberAduan.TELEPON]: "Telepon",
   [SumberAduan.LANGSUNG]: "Datang Langsung",
+  APLIKASI: "Aplikasi Mobile",
+  MOBILE: "Aplikasi Mobile",
 };
 
 export const ROLE_LABELS: Record<Role, string> = {
