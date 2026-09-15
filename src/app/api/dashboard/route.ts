@@ -139,6 +139,8 @@ export async function GET(req: NextRequest) {
 
     const fokusRows: any[] = [];
     const terbaruRows: any[] = [];
+    const aduanBaruRows: any[] = [];
+    const aduanProsesRows: any[] = [];
     const selesaiRows: any[] = [];
 
     const startMonthThis = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
@@ -252,8 +254,12 @@ export async function GET(req: NextRequest) {
       };
 
       if (isStatusAktif(d.status)) {
+        if (d.status === StatusAduan.BARU) {
+          aduanBaruRows.push(summaryItem);
+        }
         if (isStatusAktifDitangani(d.status)) {
           aduanAktifCount++;
+          aduanProsesRows.push(summaryItem);
         }
         if (!sla.responded && sla.statusCode === "ACTIVE_LATE") {
           lewatSlaCount++;
@@ -288,6 +294,8 @@ export async function GET(req: NextRequest) {
     // Sort tables
     fokusRows.sort((a, b) => new Date(a.waktuMasuk).getTime() - new Date(b.waktuMasuk).getTime());
     terbaruRows.sort((a, b) => new Date(b.waktuMasuk).getTime() - new Date(a.waktuMasuk).getTime());
+    aduanBaruRows.sort((a, b) => new Date(b.waktuMasuk).getTime() - new Date(a.waktuMasuk).getTime());
+    aduanProsesRows.sort((a, b) => new Date(b.waktuMasuk).getTime() - new Date(a.waktuMasuk).getTime());
     selesaiRows.sort((a, b) => new Date(b.waktuMasuk).getTime() - new Date(a.waktuMasuk).getTime());
 
     // Branch ranking calculation
@@ -399,6 +407,8 @@ export async function GET(req: NextRequest) {
       tables: {
         fokus: fokusRows,
         terbaru: terbaruRows,
+        aduanBaru: aduanBaruRows,
+        aduanProses: aduanProsesRows,
         selesai: selesaiRows,
       },
       chatAdmin: {

@@ -29,9 +29,15 @@ export default function DashboardPage() {
   const [filterSelesaiPeriod, setFilterSelesaiPeriod] = useState("bulan_ini");
 
   // UI state
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [refreshCountdown, setRefreshCountdown] = useState(60);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
+  }, []);
 
   // Modals
   const [modalInputOpen, setModalInputOpen] = useState(false);
@@ -140,6 +146,7 @@ export default function DashboardPage() {
             data?.user?.canSeeAll ? () => setModalSettingsOpen(true) : undefined
           }
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          sidebarOpen={sidebarOpen}
           refreshSeconds={refreshCountdown}
           unreadCount={data?.chatAdmin?.openCount || 0}
           searchQuery={searchQuery}

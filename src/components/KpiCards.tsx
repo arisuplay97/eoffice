@@ -13,6 +13,7 @@ import {
   ArrowDownRight,
   Minus,
 } from "lucide-react";
+import DalamPengerjaanIcon from "@/components/icons/DalamPengerjaanIcon";
 
 interface KpiCardsProps {
   data: {
@@ -50,7 +51,7 @@ export default function KpiCards({ data, canSeeAll = true }: KpiCardsProps) {
       subtext: "Proses & pengerjaan teknisi",
       trendText: `${data.prioritasTinggi} prioritas tinggi`,
       trendType: data.prioritasTinggi > 0 ? "warning" : "neutral",
-      icon: AlertTriangle,
+      icon: DalamPengerjaanIcon,
       iconBg: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200/50 dark:border-amber-500/20",
     },
     {

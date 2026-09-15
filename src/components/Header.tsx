@@ -10,6 +10,8 @@ import {
   Moon,
   Plus,
   Menu,
+  PanelLeft,
+  PanelLeftClose,
   FileSpreadsheet,
   Settings,
   LogOut,
@@ -28,6 +30,7 @@ interface HeaderProps {
   onOpenExport: () => void;
   onOpenSettings?: () => void;
   onToggleSidebar?: () => void;
+  sidebarOpen?: boolean;
   refreshSeconds: number;
   unreadCount?: number;
   searchQuery?: string;
@@ -41,6 +44,7 @@ export default function Header({
   onOpenExport,
   onOpenSettings,
   onToggleSidebar,
+  sidebarOpen = true,
   refreshSeconds,
   unreadCount = 3,
   searchQuery = "",
@@ -61,16 +65,21 @@ export default function Header({
 
   return (
     <header className="sticky top-0 z-30 flex h-[60px] items-center justify-between border-b border-neutral-200/50 bg-white/80 px-5 backdrop-blur-xl dark:border-neutral-800/50 dark:bg-neutral-900/80 transition-colors">
-      {/* Left: Mobile Menu & Page Title */}
+      {/* Left: Sidebar Toggle & Page Title */}
       <div className="flex items-center gap-3">
         {onToggleSidebar && (
           <button
             type="button"
             onClick={onToggleSidebar}
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 lg:hidden transition"
-            aria-label="Menu"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white transition shadow-sm border border-neutral-200/60 dark:border-neutral-800/80"
+            title={sidebarOpen ? "Sembunyikan Sidebar" : "Tampilkan Sidebar"}
+            aria-label="Toggle Sidebar"
           >
-            <Menu className="h-5 w-5" />
+            {sidebarOpen ? (
+              <PanelLeftClose className="h-4 w-4" />
+            ) : (
+              <PanelLeft className="h-4 w-4" />
+            )}
           </button>
         )}
 

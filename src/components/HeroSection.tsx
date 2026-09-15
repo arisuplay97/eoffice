@@ -21,6 +21,7 @@ import {
   TrendingDown,
   Minus,
 } from "lucide-react";
+import DalamPengerjaanIcon from "@/components/icons/DalamPengerjaanIcon";
 
 /* ------------------------------------------------------------------ */
 /* Inline SVG Sparkline (no Recharts dependency -- lightweight)        */
@@ -227,7 +228,7 @@ export default function HeroSection({ user, cards, trendData }: HeroSectionProps
       title: "Dalam Pengerjaan",
       value: cards.aduanAktif,
       subtitle: `${cards.prioritasTinggi} prioritas tinggi`,
-      icon: Wrench,
+      icon: DalamPengerjaanIcon,
       color: "text-amber-600 dark:text-amber-400",
       iconBg: "bg-amber-50 dark:bg-amber-950/30",
       sparkColor: "#f59e0b",
