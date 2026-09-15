@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession, canManageSettings } from "@/lib/auth";
-import bcrypt from "bcryptjs";
 
 export async function GET() {
   try {
@@ -10,7 +9,7 @@ export async function GET() {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const [settings, users, announcements, branches] = await Promise.all([
+    const [settings, users, announcements, branches, petugas] = await Promise.all([
       prisma.systemSetting.findMany({ orderBy: { key: "asc" } }),
       prisma.user.findMany({
         include: { cabang: true },
@@ -22,6 +21,11 @@ export async function GET() {
       }),
       prisma.cabang.findMany({
         orderBy: { kode: "asc" },
+      }),
+      prisma.petugas.findMany({
+        where: !user.canSeeAll && user.cabangId ? { cabangId: user.cabangId } : {},
+        include: { cabang: true },
+        orderBy: [{ cabang: { kode: "asc" } }, { nama: "asc" }],
       }),
     ]);
 
@@ -42,6 +46,7 @@ export async function GET() {
       users: sanitizedUsers,
       announcements,
       branches,
+      petugas,
     });
   } catch (err: any) {
     console.error("Settings GET error:", err);
@@ -110,6 +115,105 @@ export async function POST(req: NextRequest) {
         },
       });
       return NextResponse.json({ ok: true, announcement: created, message: "Pengumuman berhasil diterbitkan." });
+    }
+
+    // PETUGAS WHATSAPP MANAGEMENT
+    if (action === "create_petugas") {
+      const { nama, noHp, role, cabangId, notifAduanBaru, notifDarurat } = body;
+      if (!nama || !noHp || !cabangId) {
+        return NextResponse.json({ ok: false, error: "Nama, No WhatsApp, dan Cabang penugasan wajib diisi." }, { status: 400 });
+      }
+
+      const cleanPhone = String(noHp).replace(/[^0-9+]/g, "").trim();
+
+      // Check duplicate phone
+      const existing = await prisma.petugas.findFirst({
+        where: {
+          OR: [
+            { noHp: cleanPhone },
+            { noHp: `0${cleanPhone.replace(/^62/, "")}` },
+            { noHp: `62${cleanPhone.replace(/^0/, "")}` },
+          ],
+        },
+      });
+      if (existing) {
+        return NextResponse.json(
+          { ok: false, error: `Nomor WhatsApp ${cleanPhone} sudah terdaftar atas nama ${existing.nama}.` },
+          { status: 400 }
+        );
+      }
+
+      const created = await prisma.petugas.create({
+        data: {
+          nama: String(nama).trim(),
+          noHp: cleanPhone,
+          role: String(role || "Teknisi Lapangan").trim(),
+          cabangId,
+          notifAduanBaru: notifAduanBaru !== undefined ? Boolean(notifAduanBaru) : true,
+          notifDarurat: notifDarurat !== undefined ? Boolean(notifDarurat) : true,
+          aktif: true,
+        },
+        include: { cabang: true },
+      });
+
+      return NextResponse.json({
+        ok: true,
+        message: `Akun petugas ${created.nama} berhasil didaftarkan untuk WhatsApp.`,
+        petugas: created,
+      });
+    }
+
+    if (action === "update_petugas") {
+      const { petugasId, nama, noHp, role, cabangId, notifAduanBaru, notifDarurat, aktif } = body;
+      if (!petugasId) {
+        return NextResponse.json({ ok: false, error: "ID Petugas tidak valid." }, { status: 400 });
+      }
+
+      const dataToUpdate: any = {};
+      if (nama) dataToUpdate.nama = String(nama).trim();
+      if (noHp) dataToUpdate.noHp = String(noHp).replace(/[^0-9+]/g, "").trim();
+      if (role) dataToUpdate.role = String(role).trim();
+      if (cabangId) dataToUpdate.cabangId = cabangId;
+      if (notifAduanBaru !== undefined) dataToUpdate.notifAduanBaru = Boolean(notifAduanBaru);
+      if (notifDarurat !== undefined) dataToUpdate.notifDarurat = Boolean(notifDarurat);
+      if (aktif !== undefined) dataToUpdate.aktif = Boolean(aktif);
+
+      const updated = await prisma.petugas.update({
+        where: { id: petugasId },
+        data: dataToUpdate,
+        include: { cabang: true },
+      });
+
+      return NextResponse.json({
+        ok: true,
+        message: `Data petugas ${updated.nama} berhasil diperbarui.`,
+        petugas: updated,
+      });
+    }
+
+    if (action === "toggle_petugas") {
+      const { petugasId, aktif } = body;
+      const updated = await prisma.petugas.update({
+        where: { id: petugasId },
+        data: { aktif: Boolean(aktif) },
+      });
+      return NextResponse.json({
+        ok: true,
+        message: `Status WhatsApp petugas ${updated.nama} berhasil diubah ke ${updated.aktif ? "Aktif" : "Nonaktif"}.`,
+      });
+    }
+
+    if (action === "delete_petugas") {
+      const { petugasId } = body;
+      const target = await prisma.petugas.findUnique({ where: { id: petugasId } });
+      if (!target) {
+        return NextResponse.json({ ok: false, error: "Petugas tidak ditemukan." }, { status: 404 });
+      }
+
+      await prisma.petugas.delete({
+        where: { id: petugasId },
+      });
+      return NextResponse.json({ ok: true, message: `Akun petugas ${target.nama} berhasil dihapus dari WhatsApp.` });
     }
 
     return NextResponse.json({ ok: false, error: "Aksi tidak dikenali." }, { status: 400 });

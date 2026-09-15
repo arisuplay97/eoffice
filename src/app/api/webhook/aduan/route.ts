@@ -50,15 +50,61 @@ function normalizePrioritas(input?: string, keteranganText?: string): Prioritas 
   return Prioritas.SEDANG;
 }
 
-// GET: Healthcheck OR Check Aduan Status (Mobile Tracking)
+// GET: Healthcheck OR Check Aduan Status (Mobile Tracking) OR Check WhatsApp Phone Role
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     const noHp = searchParams.get("noHp");
     const noPelanggan = searchParams.get("noPelanggan");
+    const phoneToCheck = searchParams.get("phone") || (searchParams.get("checkRole") ? noHp : null);
 
-    // If query params are provided, act as tracking API for Mobile App
+    // 1. WhatsApp Bot Role Check: Is this phone number a Petugas or a Pelanggan?
+    if (phoneToCheck) {
+      const cleanPhone = phoneToCheck.replace(/[^0-9]/g, "").trim();
+      const last8 = cleanPhone.slice(-8);
+
+      const petugas = await prisma.petugas.findFirst({
+        where: {
+          aktif: true,
+          OR: [
+            { noHp: cleanPhone },
+            { noHp: `0${cleanPhone.replace(/^62/, "")}` },
+            { noHp: `62${cleanPhone.replace(/^0/, "")}` },
+            { noHp: { contains: last8 } },
+          ],
+        },
+        include: {
+          cabang: { select: { id: true, kode: true, nama: true, kontak: true } },
+        },
+      });
+
+      if (petugas) {
+        return NextResponse.json({
+          ok: true,
+          isPetugas: true,
+          role: "PETUGAS",
+          petugas: {
+            id: petugas.id,
+            nama: petugas.nama,
+            noHp: petugas.noHp,
+            role: petugas.role,
+            cabang: petugas.cabang,
+            notifAduanBaru: petugas.notifAduanBaru,
+            notifDarurat: petugas.notifDarurat,
+          },
+        });
+      }
+
+      return NextResponse.json({
+        ok: true,
+        isPetugas: false,
+        role: "PELANGGAN",
+        phone: cleanPhone,
+      });
+    }
+
+    // 2. Mobile Tracking / Complaint Status Lookup
     if (id || noHp || noPelanggan) {
       const where: any = {};
       if (id) where.id = id.trim();
