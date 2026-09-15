@@ -155,6 +155,24 @@ Future<Map<String, dynamic>> submitAduan({
 }
 ```
 
+### Format Tiket Aduan
+Format nomor tiket di SIAGA TIARA adalah **`[KODE_CABANG][4 DIGIT ACAK ALFANUMERIK]`** (Total 7 karakter).
+Contoh: **`BKU123C`**, **`PRY7K2A`**, **`KPG4N8M`**.
+
+Daftar 12 kode cabang resmi:
+- `BKU` : Cabang Batukliang Utara
+- `KPG` : Cabang Kopang
+- `PRY` : Cabang Praya
+- `PTE` : Cabang Praya Tengah
+- `PBD` : Cabang Praya Barat Daya
+- `BTK` : Cabang Batukliang
+- `JNP` : Cabang Janapria
+- `PJT` : Cabang Pujut
+- `PRB` : Cabang Praya Barat
+- `PRT` : Cabang Praya Timur
+- `PGR` : Cabang Pringgarata
+- `JGT` : Cabang Jonggat
+
 ---
 
 ### Contoh Response
@@ -164,12 +182,12 @@ Future<Map<String, dynamic>> submitAduan({
 {
   "ok": true,
   "message": "Aduan berhasil diterima dan dicatat ke SIAGA TIARA.",
-  "id": "PRY260915448",
+  "id": "BKU123C",
   "aduan": {
-    "id": "PRY260915448",
+    "id": "BKU123C",
     "namaPelanggan": "Ahmad Fauzi",
     "noHp": "081987654321",
-    "cabangNama": "Cabang Praya",
+    "cabangNama": "Cabang Batukliang Utara",
     "jenisGangguan": "PIPA_BOCOR",
     "prioritas": "DARURAT",
     "status": "BARU",
@@ -181,7 +199,7 @@ Future<Map<String, dynamic>> submitAduan({
 }
 ```
 
-Simpan field `id` (cth: `PRY260915448`) di local storage aplikasi mobile untuk keperluan tracking status aduan oleh pengguna.
+Simpan field `id` (cth: `BKU123C`) di local storage aplikasi mobile untuk keperluan tracking status aduan oleh pengguna.
 
 #### Error (500 Internal Server Error)
 ```json
@@ -199,17 +217,17 @@ Digunakan di aplikasi mobile pada menu riwayat / pelacakan aduan tanpa memerluka
 
 ### Request
 ```http
-GET /api/webhook/aduan?id={ID_ADUAN}
+GET /api/webhook/aduan?id=BKU123C
 ```
 Atau lacak berdasarkan nomor HP:
 ```http
-GET /api/webhook/aduan?noHp={NOMOR_HP}
+GET /api/webhook/aduan?noHp=081987654321
 ```
 
 ### Parameter Query String
 | Parameter | Tipe | Contoh | Keterangan |
 |---|---|---|---|
-| `id` | String | `PRY260915448` | Mencari 1 tiket spesifik berdasarkan nomor aduan |
+| `id` | String | `BKU123C` | Mencari 1 tiket spesifik berdasarkan nomor aduan |
 | `noHp` | String | `081987654321` | Menampilkan riwayat aduan yang pernah dikirim dari nomor tsb (maks. 10 tiket) |
 | `noPelanggan` | String | `10082341` | Menampilkan aduan berdasarkan ID meteran pelanggan |
 
@@ -220,14 +238,14 @@ GET /api/webhook/aduan?noHp={NOMOR_HP}
   "count": 1,
   "items": [
     {
-      "id": "PRY260915448",
+      "id": "BKU123C",
       "status": "DALAM_PENGERJAAN",
       "waktuMasuk": "2026-09-15T02:15:30.000Z",
       "waktuRespons": "2026-09-15T02:30:12.000Z",
       "waktuSelesai": null,
       "cabang": {
-        "nama": "Cabang Praya",
-        "kode": "PRY",
+        "nama": "Cabang Batukliang Utara",
+        "kode": "BKU",
         "kontak": "08123456789"
       },
       "penugasan": [

@@ -1,17 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { StatusAduan, Prioritas, JenisGangguan, SumberAduan, TipeDokumentasi } from "@prisma/client";
+import { generateAduanId } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-function generateAduanId(kodeCabang: string): string {
-  const d = new Date();
-  const yy = String(d.getFullYear()).slice(2);
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const rand = Math.floor(100 + Math.random() * 900);
-  return `${kodeCabang}${yy}${mm}${dd}${rand}`;
-}
 
 function normalizeJenisGangguan(input?: string): JenisGangguan {
   if (!input) return JenisGangguan.LAINNYA;
@@ -269,10 +261,10 @@ export async function POST(req: NextRequest) {
     else if (isLangsung) sumberAduanEnum = SumberAduan.LANGSUNG;
     else if (rawSumber.includes("DASHBOARD")) sumberAduanEnum = SumberAduan.DASHBOARD;
 
-    // Generate unique ID (e.g. PRY260915123)
+    // Generate unique ID (e.g. BKU123C, PRY7K2A)
     let newId = generateAduanId(cabang.kode);
     let attempts = 0;
-    while (attempts < 5) {
+    while (attempts < 10) {
       const exists = await prisma.aduan.findUnique({ where: { id: newId } });
       if (!exists) break;
       newId = generateAduanId(cabang.kode);

@@ -2,15 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession, canReassignBranch } from "@/lib/auth";
 import { StatusAduan } from "@prisma/client";
-
-function generateAduanId(kodeCabang: string): string {
-  const d = new Date();
-  const yy = String(d.getFullYear()).slice(2);
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const rand = Math.floor(100 + Math.random() * 900);
-  return `${kodeCabang}${yy}${mm}${dd}${rand}`;
-}
+import { generateAduanId } from "@/lib/utils";
 
 export async function POST(
   req: NextRequest,
@@ -62,7 +54,14 @@ export async function POST(
     }
 
     const now = new Date();
-    const newId = generateAduanId(targetCabang.kode);
+    let newId = generateAduanId(targetCabang.kode);
+    let attempts = 0;
+    while (attempts < 10) {
+      const exists = await prisma.aduan.findUnique({ where: { id: newId } });
+      if (!exists) break;
+      newId = generateAduanId(targetCabang.kode);
+      attempts++;
+    }
 
     // 1. Buat aduan baru di cabang tujuan
     const newAduan = await prisma.aduan.create({

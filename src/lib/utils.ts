@@ -67,3 +67,18 @@ export function slugify(s: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)+/g, "");
 }
+
+/**
+ * Format tiket aduan SIAGA TIARA:
+ * [KODE_CABANG][4 digit acak alfanumerik]
+ * Contoh: BKU123C, PRY7K2A, KPG4N8M
+ */
+export function generateAduanId(kodeCabang: string): string {
+  const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let randomPart = "";
+  for (let i = 0; i < 4; i++) {
+    randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  const cleanKode = (kodeCabang || "PRY").toUpperCase().trim().replace(/[^A-Z]/g, "") || "PRY";
+  return `${cleanKode}${randomPart}`;
+}
